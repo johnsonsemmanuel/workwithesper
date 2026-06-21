@@ -740,7 +740,7 @@ function curCode() { return selectedCurrency; }
 function setCurrency(code) {
   selectedCurrency = code;
   document.querySelectorAll('.currency-select').forEach(function(el) { el.value = code; });
-  if (curStep === 3) renderTiers();
+  if (curStep === 3) { renderTiers(); animateCards('#tierGrid .tier-card', 80); }
   if (curStep === 5) renderQuote();
   updateRateInfo();
   saveState();
@@ -1151,7 +1151,7 @@ if (savedStep !== null) {
   var savedTime = (function() { try { return localStorage.getItem('esp_time'); } catch(e) { return null; } })();
   var savedPath = (function() { try { return localStorage.getItem('esp_path'); } catch(e) { return null; } })();
   if (savedCat) { selectedCat = savedCat; document.getElementById('catNextBtn').disabled = false; renderCategories(); }
-  if (savedTier) { selectedTier = savedTier; document.getElementById('tierNextBtn').disabled = false; if (savedCat) renderTiers(); }
+  if (savedTier) { selectedTier = savedTier; document.getElementById('tierNextBtn').disabled = false; if (savedCat) { renderTiers(); animateCards('#tierGrid .tier-card', 80); } }
   if (savedDate) selectedDate = savedDate;
   if (savedTime) selectedTime = savedTime;
   if (savedPath) { selectedPath = savedPath; if (savedStep <= 4) choosePath(savedPath); }
