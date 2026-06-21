@@ -539,7 +539,7 @@ function go(n) {
   setTimeout(() => fill.classList.remove('glow'), 500);
   window.scrollTo(0, 0);
   if (n === 2) animateCards('#categoryGrid .opt-card', 60);
-  if (n === 3) animateCards('#tierGrid .tier-card', 80);
+  if (n === 3) { renderTiers(); animateCards('#tierGrid .tier-card', 80); }
   if (n === 4) animateCards('.slot-btn', 30);
   if (n === 5) renderQuote();
   if (n === 1) typePrompt('step1 .prompt', './discover');
