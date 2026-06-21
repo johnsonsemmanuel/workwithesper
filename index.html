@@ -14,6 +14,7 @@
   <meta name="twitter:card" content="summary" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -321,6 +322,74 @@
     }
     #schedulerSection { margin-top: 24px; }
 
+    /* priority toggle */
+    .priority-toggle {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border: 1px solid var(--border);
+      background: var(--bg-card); cursor: pointer;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .priority-toggle:hover { border-color: var(--amber); }
+    .priority-toggle.active { border-color: var(--amber); background: #1c2333; }
+    .priority-toggle input[type=checkbox] { accent-color: var(--amber); width: 14px; height: 14px; cursor: pointer; }
+    .priority-toggle .premium-label { color: var(--amber); font-weight: 600; }
+
+    /* timeline */
+    .timeline { display: flex; gap: 0; margin: 16px 0; text-align: left; flex-direction: column; }
+    .timeline .tl-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 0; position: relative;
+    }
+    .timeline .tl-item:not(:last-child)::after {
+      content: ''; position: absolute; left: 8px; top: 28px; bottom: -4px;
+      width: 1px; background: var(--border);
+    }
+    .timeline .tl-num {
+      width: 18px; height: 18px; border: 1px solid var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--green);
+      flex-shrink: 0;
+    }
+    .timeline .tl-text { font-size: 12px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+    .timeline .tl-text strong { color: var(--text); }
+
+    /* countdown */
+    #countdownTimer {
+      font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--green);
+    }
+
+    /* footer */
+    .foot-note {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim);
+      text-align: center; padding: 12px 0; border-top: 1px solid var(--border); margin-top: 20px;
+    }
+    .foot-note a { color: var(--text-dim); text-decoration: none; }
+    .foot-note a:hover { color: var(--green); }
+
+    /* shimmer on form-card during submit */
+    .form-card.shimmer { position: relative; overflow: hidden; }
+    .form-card.shimmer::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(63,185,80,0.04) 50%, transparent 100%);
+      animation: shimmer 1.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+    /* contact person */
+    .contact-person {
+      padding: 10px 14px; border: 1px solid var(--cyan);
+      background: var(--bg-card); text-align: left;
+    }
+    .contact-person .cp-name { font-size: 13px; font-weight: 600; color: var(--cyan); }
+    .contact-person .cp-role { font-size: 10px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+    .contact-person .cp-detail { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+    /* pdf download button area */
+    .pdf-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .pdf-actions .btn { flex: 1; font-size: 11px; padding: 8px 12px; }
+
     /* calendly */
     #calendlyContainer .calendly-inline-widget { min-width:320px; height:580px; }
     #calendlyContainer .calendly-spinner { display:none; }
@@ -335,7 +404,7 @@
     <div class="term-dot y"></div>
     <div class="term-dot g"></div>
   </div>
-  <div class="term-title">espr@partners:<span>~</span>$ discover</div>
+  <div class="term-title">espr@partners:<span>~</span>$ discover <span style="color:var(--text-dim);font-weight:400;margin-left:12px;">Esper Partners LLC &middot; Accra, Ghana</span></div>
   <div class="step-counter">step <span class="active-step" id="stepNum">1</span>/<span id="totalSteps">6</span></div>
 </div>
 
@@ -457,8 +526,13 @@
     </div>
 
     <div class="form-row">
-      <div class="quote-summary" id="quoteSummary"></div>
-      <div class="form-card">
+      <div>
+        <div class="quote-summary" id="quoteSummary"></div>
+        <div class="pdf-actions">
+          <button class="btn btn-block" onclick="downloadPDF()"><i data-lucide="file-text" width="14" height="14" stroke-width="1.5"></i> Download Quote PDF</button>
+        </div>
+      </div>
+      <div class="form-card" id="formCard">
         <div class="prompt" style="margin-bottom:12px"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> your details</div>
         <div id="paymentNotice" style="display:none;margin-bottom:14px;padding:8px 12px;border:1px solid var(--amber);color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:11px;"><i data-lucide="shield" width="12" height="12" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> Work begins <strong>after payment</strong> is received. Your invoice will be sent via email.</div>
         <form id="detailsForm" novalidate>
@@ -515,11 +589,18 @@
     <div class="success-mark"><i data-lucide="check" width="28" height="28" stroke-width="2.5" style="color:var(--green)"></i></div>
     <h1 class="heading" style="font-size:22px;">Your request is in.</h1>
     <p class="sub" style="max-width:400px;margin:0 auto 20px;" id="confirmMsg">We'll review and send a formal proposal within 48 hours.</p>
-    <div style="background:var(--bg-card);border:1px solid var(--border);padding:16px;margin-bottom:20px;text-align:left;max-width:400px;margin:0 auto 20px;" id="confirmSummary"></div>
-    <div style="margin-bottom:20px;max-width:400px;margin:0 auto 20px;" id="confirmMeeting"></div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);padding:16px;margin-bottom:16px;text-align:left;max-width:400px;margin:0 auto 16px;" id="confirmSummary"></div>
+    <div style="margin-bottom:16px;max-width:400px;margin:0 auto 16px;" id="confirmMeeting"></div>
+    <div style="max-width:400px;margin:0 auto 16px;" id="timelineContainer"></div>
+    <div style="max-width:400px;margin:0 auto 16px;display:none;" id="smsConfirm"></div>
+    <div style="max-width:400px;margin:0 auto 20px;" id="contactPerson"></div>
+    <div style="margin-bottom:12px;"><span id="countdownTimer" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);"></span></div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <a href="https://espergloballtd.com" class="btn"><i data-lucide="external-link" width="14" height="14" stroke-width="2"></i> Visit Website</a>
       <a href="https://wa.me/233208713610" class="btn btn-outline"><i data-lucide="message-circle" width="14" height="14" stroke-width="2"></i> Chat on WhatsApp</a>
+    </div>
+    <div class="foot-note">
+      Esper Partners LLC &middot; Accra, Ghana &middot; <a href="#" onclick="return false;">Privacy Policy</a> &middot; <a href="#" onclick="return false;">Terms of Service</a>
     </div>
   </div>
 </div>
@@ -556,7 +637,11 @@ const TIME_SLOTS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00
 const CURRENCIES = { USD: ['$', 'US Dollar'], GHS: ['GH¢', 'Ghanaian Cedi'], NGN: ['₦', 'Nigerian Naira'], KES: ['KSh', 'Kenyan Shilling'], ZAR: ['R', 'South African Rand'], UGX: ['USh', 'Ugandan Shilling'], TZS: ['TSh', 'Tanzanian Shilling'], RWF: ['FRw', 'Rwandan Franc'], XAF: ['FCFA', 'Central African CFA'], XOF: ['CFA', 'West African CFA'], EGP: ['E£', 'Egyptian Pound'], MAD: ['DH', 'Moroccan Dirham'], ZMW: ['ZK', 'Zambian Kwacha'], MZN: ['MT', 'Mozambican Metical'], ETB: ['Br', 'Ethiopian Birr'], BWP: ['P', 'Botswana Pula'] };
 
 const CALENDLY_URL = 'https://calendly.com/espergloballtd/30min'; // set to '' to use manual date/time picker
+const CONTACT_PERSON = { name: 'Emmanuel Johnson', email: 'emmanuel@espergloballtd.com', phone: '+233 20 871 3610', role: 'Project Manager' };
+const PRIORITY_PREMIUM = 0.3;
+const PRIORITY_SPEED = 0.5;
 let selectedPath = null, curStep = 1, selectedCat = null, selectedTier = null, selectedTime = null, selectedDate = null, rates = { USD: 1 };
+let priorityMode = false, responseDeadline = null, countdownInterval = null;
 
 function go(n) {
   const forward = n > curStep;
@@ -592,8 +677,11 @@ function go(n) {
   if (n === 1) typePrompt('step1 .prompt', './discover');
   if (n === 2) typePrompt('step2 .prompt', 'what brings you here?');
   if (n === 3) typePrompt('step3 .prompt', "what's your scope?");
-  if (n === 4) typePrompt('step4 .prompt', 'book a discovery call');
+  if (n === 4) typePrompt('step4 .prompt', 'choose your path');
   if (n === 5) typePrompt('step5 .prompt', 'your quote');
+  var titles = { 1: 'Service Discovery | Esper Partners', 2: 'Pick a Category | Esper Partners', 3: 'Select Package | Esper Partners', 4: 'Choose Path | Esper Partners', 5: 'Your Quote | Esper Partners', 6: 'Request Submitted | Esper Partners' };
+  document.title = titles[n] || 'Esper Partners';
+  if (n === 6) startCountdown();
   saveState();
 }
 
@@ -704,8 +792,6 @@ function initScheduler() {
 function showCalendly() {
   document.getElementById('manualScheduler').style.display = 'none';
   document.getElementById('calendlyConfirm').style.display = 'none';
-  document.getElementById('step4Heading').style.display = 'none';
-  document.getElementById('step4Sub').style.display = 'none';
   document.getElementById('step4Info').style.display = 'none';
   const container = document.getElementById('calendlyContainer');
   container.style.display = 'block';
@@ -759,8 +845,6 @@ function showCalendly() {
 function showManualScheduler() {
   document.getElementById('calendlyContainer').style.display = 'none';
   document.getElementById('calendlyConfirm').style.display = 'none';
-  document.getElementById('step4Heading').style.display = '';
-  document.getElementById('step4Sub').style.display = '';
   document.getElementById('step4Info').style.display = '';
   document.getElementById('manualScheduler').style.display = 'block';
 
@@ -813,10 +897,114 @@ function renderQuote() {
   document.getElementById('submitBtnLabel').textContent = isInvoice ? 'Invoice' : 'Proposal';
   document.getElementById('paymentNotice').style.display = isInvoice ? 'block' : 'none';
   if (isInvoice && typeof lucide !== 'undefined') lucide.createIcons();
-  const t = selectedTier, p = t.p, mp = t.x || t.p, s = sy();
-  const el = document.getElementById('quoteSummary');
-  el.innerHTML = '<div class="line"><span class="lbl">service</span><span class="val">' + selectedCat + '</span></div><div class="line"><span class="lbl">package</span><span class="val">' + t.n + '</span></div><div class="line"><span class="lbl">delivery</span><span class="val">' + t.dy + ' business days</span></div><div style="margin-top:8px;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);font-size:12px;font-family:\'JetBrains Mono\',monospace;color:var(--text-dim);"><div style="display:flex;justify-content:space-between;"><span>USD</span><span>$' + p.toLocaleString() + (mp > p ? ' - $' + mp.toLocaleString() : '') + '</span></div><div style="display:flex;justify-content:space-between;"><span>' + curCode() + '</span><span>' + s + fp(p) + (mp > p ? ' - ' + s + fp(mp) : '') + '</span></div></div><div class="total"><span>' + (mp > p ? 'from' : 'fixed') + '</span><span>' + s + fp(p) + '</span></div><div style="margin-top:8px;padding:6px 10px;border:1px solid var(--cyan);color:var(--cyan);font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i data-lucide="shield" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> <strong>50% deposit</strong> required to start</div>';
+  var t = selectedTier, baseP = t.p, baseMP = t.x || t.p, s = sy();
+  var effDays = priorityMode ? Math.ceil(t.dy * (1 - PRIORITY_SPEED)) : t.dy;
+  var effP = priorityMode ? Math.round(baseP * (1 + PRIORITY_PREMIUM)) : baseP;
+  var effMP = priorityMode ? Math.round(baseMP * (1 + PRIORITY_PREMIUM)) : baseMP;
+  var el = document.getElementById('quoteSummary');
+  el.innerHTML = '<div class="line"><span class="lbl">service</span><span class="val">' + selectedCat + '</span></div><div class="line"><span class="lbl">package</span><span class="val">' + t.n + '</span></div><div class="line"><span class="lbl">delivery</span><span class="val">' + effDays + ' business days' + (priorityMode ? ' <span style="color:var(--amber)">(priority)</span>' : '') + '</span></div><div style="margin-top:8px;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);font-size:12px;font-family:\'JetBrains Mono\',monospace;color:var(--text-dim);"><div style="display:flex;justify-content:space-between;"><span>USD</span><span>$' + effP.toLocaleString() + (effMP > effP ? ' - $' + effMP.toLocaleString() : '') + '</span></div><div style="display:flex;justify-content:space-between;"><span>' + curCode() + '</span><span>' + s + fp(effP) + (effMP > effP ? ' - ' + s + fp(effMP) : '') + '</span></div></div><div class="total"><span>' + (effMP > effP ? 'from' : 'fixed') + '</span><span>' + s + fp(effP) + '</span></div><div style="margin-top:8px;padding:6px 10px;border:1px solid var(--cyan);color:var(--cyan);font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i data-lucide="shield" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> <strong>50% deposit</strong> required to start</div><div class="priority-toggle' + (priorityMode ? ' active' : '') + '" onclick="togglePriority()"><input type="checkbox"' + (priorityMode ? ' checked' : '') + '><span>Priority Queue — deliver in <strong>' + effDays + ' days</strong> (' + (priorityMode ? '-' : '') + Math.round(PRIORITY_SPEED * 100) + '% faster) at <strong class="premium-label">+' + Math.round(PRIORITY_PREMIUM * 100) + '% premium</strong></span></div>';
+  restoreFormDraft();
   if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function togglePriority() {
+  priorityMode = !priorityMode;
+  renderQuote();
+}
+
+function downloadPDF() {
+  if (!selectedCat || !selectedTier) return;
+  try {
+    var t = selectedTier, baseP = t.p, baseMP = t.x || t.p;
+    var effDays = priorityMode ? Math.ceil(t.dy * (1 - PRIORITY_SPEED)) : t.dy;
+    var effP = priorityMode ? Math.round(baseP * (1 + PRIORITY_PREMIUM)) : baseP;
+    var effMP = priorityMode ? Math.round(baseMP * (1 + PRIORITY_PREMIUM)) : baseMP;
+    var { jsPDF } = window.jspdf;
+    var doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    var x = 40, y = 60, w = 515;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text('Esper Partners', x, y);
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text('Service Quote', x, y + 16);
+    doc.setDrawColor(63, 185, 80);
+    doc.setLineWidth(1);
+    doc.line(x, y + 24, x + w, y + 24);
+    y += 50;
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal');
+    var lines = [
+      ['Service', selectedCat],
+      ['Package', t.n],
+      ['Delivery', effDays + ' business days' + (priorityMode ? ' (priority)' : '')],
+      ['Price', '$' + effP.toLocaleString() + (effMP > effP ? ' - $' + effMP.toLocaleString() : '')],
+    ];
+    lines.forEach(function(l) {
+      doc.setFont('helvetica', 'bold');
+      doc.text(l[0] + ':', x, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(l[1], x + 100, y);
+      y += 20;
+    });
+    y += 20;
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text('50% deposit required to start. Work begins after payment.', x, y);
+    y += 16;
+    doc.text('Quote valid for 14 days. Pricing in USD.', x, y);
+    y += 40;
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Esper Partners LLC - Accra, Ghana - espergloballtd.com', x, y);
+    doc.text('Contact: ' + CONTACT_PERSON.name + ' - ' + CONTACT_PERSON.email + ' - ' + CONTACT_PERSON.phone, x, y + 12);
+    doc.save('Esper-Partners-Quote.pdf');
+  } catch(e) { toast('Could not generate PDF.', 'error'); }
+}
+
+function saveFormDraft() {
+  try {
+    var draft = { fullName: document.getElementById('fullName').value, email: document.getElementById('email').value, phone: document.getElementById('phone').value, company: document.getElementById('company').value, description: document.getElementById('description').value };
+    localStorage.setItem('esp_draft', JSON.stringify(draft));
+  } catch(e) {}
+}
+
+function restoreFormDraft() {
+  try {
+    var raw = localStorage.getItem('esp_draft');
+    if (!raw) return;
+    var draft = JSON.parse(raw);
+    if (draft.fullName) document.getElementById('fullName').value = draft.fullName;
+    if (draft.email) document.getElementById('email').value = draft.email;
+    if (draft.phone) document.getElementById('phone').value = draft.phone;
+    if (draft.company) document.getElementById('company').value = draft.company;
+    if (draft.description) document.getElementById('description').value = draft.description;
+  } catch(e) {}
+}
+
+function startCountdown() {
+  if (!responseDeadline) { responseDeadline = new Date(Date.now() + 2 * 60 * 60 * 1000); }
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(updateCountdown, 1000);
+  updateCountdown();
+}
+
+function updateCountdown() {
+  var el = document.getElementById('countdownTimer');
+  if (!el) return;
+  var diff = responseDeadline - new Date();
+  if (diff <= 0) { el.textContent = 'Responding now!'; clearInterval(countdownInterval); return; }
+  var h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+  el.textContent = 'Estimated response: ' + h + 'h ' + m + 'm ' + s + 's remaining';
+}
+
+function detectCurrency() {
+  try {
+    var tzMap = { 'Africa/Accra': 'GHS', 'Africa/Lagos': 'NGN', 'Africa/Nairobi': 'KES', 'Africa/Johannesburg': 'ZAR', 'Africa/Kampala': 'UGX', 'Africa/Dar_es_Salaam': 'TZS', 'Africa/Kigali': 'RWF', 'Africa/Douala': 'XAF', 'Africa/Abidjan': 'XOF', 'Africa/Cairo': 'EGP', 'Africa/Casablanca': 'MAD', 'Africa/Lusaka': 'ZMW', 'Africa/Maputo': 'MZN', 'Africa/Addis_Ababa': 'ETB', 'Africa/Gaborone': 'BWP' };
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tzMap[tz]) document.getElementById('currencySelect').value = tzMap[tz];
+  } catch(e) {}
 }
 
 document.getElementById('currencySelect').addEventListener('change', () => { renderQuote(); updateRateInfo(); });
@@ -853,16 +1041,20 @@ document.getElementById('detailsForm').addEventListener('submit', async function
   fd.append('company', document.getElementById('company').value.trim());
   fd.append('service', selectedTier.n);
   fd.append('category', selectedCat);
-  fd.append('complexity', 'Fixed');
+  fd.append('complexity', priorityMode ? 'Priority' : 'Fixed');
   var meetingInfo = (selectedDate && selectedTime) ? '\n\nDiscovery Call: ' + selectedDate + ' at ' + selectedTime : '\n\nNo discovery call - direct invoice request';
-  fd.append('description', selectedTier.d + '\n\n' + de + meetingInfo);
-  fd.append('price', selectedTier.p);
-  fd.append('estimatedDays', selectedTier.dy);
+  var priorityInfo = priorityMode ? '\n\nPriority Mode: +' + Math.round(PRIORITY_PREMIUM * 100) + '% premium, ' + Math.round(PRIORITY_SPEED * 100) + '% faster' : '';
+  fd.append('description', selectedTier.d + '\n\n' + de + meetingInfo + priorityInfo);
+  var effP = priorityMode ? Math.round(selectedTier.p * (1 + PRIORITY_PREMIUM)) : selectedTier.p;
+  var effDays = priorityMode ? Math.ceil(selectedTier.dy * (1 - PRIORITY_SPEED)) : selectedTier.dy;
+  fd.append('price', effP);
+  fd.append('estimatedDays', effDays);
   fd.append('currency', curCode());
   fd.append('meetingDate', selectedDate || '');
   fd.append('meetingTime', selectedTime || '');
   var af = document.getElementById('attachment');
   if (af.files[0]) fd.append('attachment', af.files[0]);
+  document.getElementById('formCard').classList.add('shimmer');
   try {
     var r = await fetch('/api/send-quote', { method: 'POST', body: fd });
     var d = await r.json();
@@ -871,21 +1063,35 @@ document.getElementById('detailsForm').addEventListener('submit', async function
       document.getElementById('confirmMsg').textContent = isInvoice ? 'Your invoice has been sent. Work begins after payment is received.' : (d.message || 'We will review and send a formal proposal within 48 hours.');
       var meetingLine = (selectedDate && selectedTime) ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">discovery call</span><span>' + selectedDate + ' at ' + selectedTime + '</span></div>' : '';
       var statusLine = isInvoice ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">status</span><span style="color:var(--green)">invoice sent</span></div>' : '';
+      var priorityLine = priorityMode ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">priority</span><span style="color:var(--amber)">yes</span></div>' : '';
       document.getElementById('confirmSummary').innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + selectedTier.dy + ' business days</span></div>' + meetingLine + statusLine;
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + effDays + ' business days' + (priorityMode ? ' <span style="color:var(--amber)">(priority)</span>' : '') + '</span></div>' + meetingLine + priorityLine + statusLine;
       if (d.paymentUrl) {
-        document.getElementById('confirmMeeting').innerHTML = '<div style="padding:12px;border:1px solid var(--green);color:var(--green);font-family:\'JetBrains Mono\',monospace;font-size:12px;"><i data-lucide="external-link" width="14" height="14" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> <a href="' + d.paymentUrl + '" target="_blank" style="color:var(--green);text-decoration:underline;">Pay Invoice Online</a> &mdash; cards, mobile money &amp; bank transfer</div>';
+        document.getElementById('confirmMeeting').innerHTML = '<div style="padding:12px;border:1px solid var(--green);color:var(--green);font-family:\'JetBrains Mono\',monospace;font-size:12px;"><i data-lucide="external-link" width="14" height="14" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> <a href="' + d.paymentUrl + '" target="_blank" style="color:var(--green);text-decoration:underline;">Pay Invoice Online</a> — cards, mobile money &amp; bank transfer</div>';
       } else if (selectedDate && selectedTime) {
         document.getElementById('confirmMeeting').innerHTML = '<i data-lucide="video" width="16" height="16" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong><br/>Your discovery call link will be sent to <strong>' + em + '</strong> shortly.';
       } else {
         document.getElementById('confirmMeeting').style.display = 'none';
+      }
+      // timeline
+      document.getElementById('timelineContainer').innerHTML =
+        '<div class="timeline"><div class="tl-item"><div class="tl-num">01</div><div class="tl-text"><strong>Request received</strong> &mdash; we are reviewing your details</div></div><div class="tl-item"><div class="tl-num">02</div><div class="tl-text"><strong>Invoice sent</strong> &mdash; payment link is on its way' + (isInvoice ? ' via email &amp; SMS' : '') + '</div></div><div class="tl-item"><div class="tl-num">03</div><div class="tl-text"><strong>Payment confirmed</strong> &mdash; project commences within 24 hours</div></div></div>';
+      // contact person
+      document.getElementById('contactPerson').innerHTML =
+        '<div class="contact-person"><div class="cp-name"><i data-lucide="user" width="14" height="14" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> ' + CONTACT_PERSON.name + '</div><div class="cp-role">' + CONTACT_PERSON.role + '</div><div class="cp-detail">' + CONTACT_PERSON.email + ' &middot; ' + CONTACT_PERSON.phone + '</div></div>';
+      // sms note for invoice path
+      if (isInvoice) {
+        document.getElementById('smsConfirm').style.display = 'block';
+        document.getElementById('smsConfirm').innerHTML = '<div style="padding:8px 12px;border:1px solid var(--border);color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;font-size:10px;"><i data-lucide="message-circle" width="12" height="12" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> SMS confirmation sent to your phone</div>';
+      } else {
+        document.getElementById('smsConfirm').style.display = 'none';
       }
       if (typeof lucide !== 'undefined') lucide.createIcons();
       go(6);
       try { localStorage.removeItem('espr_draft'); } catch(e) {}
     } else toast(d.message || 'Failed.', 'error');
   } catch(e) { toast('Network error.', 'error'); }
-  finally { btn.classList.remove('loading'); btn.disabled = false; }
+  finally { btn.classList.remove('loading'); btn.disabled = false; document.getElementById('formCard').classList.remove('shimmer'); }
 });
 
 document.getElementById('attachment').addEventListener('change', function() {
@@ -893,8 +1099,12 @@ document.getElementById('attachment').addEventListener('change', function() {
   if (this.files[0]) { w.classList.add('has-file'); n.textContent = this.files[0].name; }
   else { w.classList.remove('has-file'); n.textContent = ''; }
 });
-['fullName', 'email', 'description'].forEach(id => {
-  document.getElementById(id).addEventListener('input', function() { document.getElementById('err-' + id).classList.remove('show'); });
+['fullName', 'email', 'description', 'phone', 'company'].forEach(function(id) {
+  var el = document.getElementById(id);
+  el.addEventListener('input', function() {
+    document.getElementById('err-' + id) && document.getElementById('err-' + id).classList.remove('show');
+    saveFormDraft();
+  });
 });
 
 function toast(m, t) {
@@ -907,6 +1117,7 @@ function toast(m, t) {
 if (typeof lucide !== 'undefined') lucide.createIcons();
 renderCategories();
 fetchRates();
+detectCurrency();
 initScheduler();
 
 var savedStep = (function() {
