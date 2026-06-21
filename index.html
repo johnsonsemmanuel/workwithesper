@@ -14,6 +14,7 @@
   <meta name="twitter:card" content="summary" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://assets.calendly.com/assets/external/widget.js" defer></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -290,7 +291,12 @@
       cursor: pointer; width: 100%;
     }
     .date-input:focus { border-color: var(--green); }
+
+    /* calendly */
+    #calendlyContainer .calendly-inline-widget { min-width:320px; height:580px; }
+    #calendlyContainer .calendly-spinner { display:none; }
   </style>
+  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
 </head>
 <body>
 
@@ -357,19 +363,27 @@
   <div class="container">
     <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ <span style="color:var(--cyan)">book a discovery call</span></div>
     <h1 class="heading">Let's talk it through.</h1>
-    <p class="sub">Pick a date and time for a free 30-minute discovery call on Google Meet. We'll listen, clarify, and make sure we're the right fit.</p>
-    <div class="form-card">
-      <div class="form-group">
-        <label><span class="required">*</span> preferred date</label>
-        <input type="date" class="date-input" id="meetingDate" />
-        <div class="field-error" id="err-meetingDate">Select a date</div>
+    <p class="sub">Pick a time for a free 30-minute discovery call. It syncs directly to our Google Calendar.</p>
+    <div class="form-card" id="schedulerCard">
+      <div id="calendlyContainer" style="display:none;min-height:500px;"></div>
+      <div id="manualScheduler" style="display:none;">
+        <div class="form-group">
+          <label><span class="required">*</span> preferred date</label>
+          <input type="date" class="date-input" id="meetingDate" />
+          <div class="field-error" id="err-meetingDate">Select a date</div>
+        </div>
+        <div class="form-group">
+          <label><span class="required">*</span> preferred time (GMT)</label>
+          <div class="slot-grid" id="timeSlots"></div>
+          <div class="field-error" id="err-meetingTime">Select a time slot</div>
+        </div>
       </div>
-      <div class="form-group">
-        <label><span class="required">*</span> preferred time (GMT)</label>
-        <div class="slot-grid" id="timeSlots"></div>
-        <div class="field-error" id="err-meetingTime">Select a time slot</div>
+      <div id="calendlyConfirm" style="display:none;text-align:center;padding:20px;">
+        <i data-lucide="check-circle" width="40" height="40" stroke-width="1.5" style="color:var(--green)"></i>
+        <p style="margin-top:10px;font-weight:600;font-size:15px;">Discovery call booked!</p>
+        <p style="color:var(--text-dim);font-size:13px;margin-top:4px;" id="calendlyEventInfo"></p>
       </div>
-      <div style="margin-top:8px;padding:8px 12px;border:1px solid var(--cyan);color:var(--cyan);font-size:12px;font-family:'JetBrains Mono',monospace;">
+      <div style="margin-top:12px;padding:8px 12px;border:1px solid var(--cyan);color:var(--cyan);font-size:12px;font-family:'JetBrains Mono',monospace;">
         <i data-lucide="video" width="14" height="14" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong> link will be sent to your email after booking.
       </div>
     </div>
@@ -509,7 +523,8 @@ const TIME_SLOTS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00
 
 const CURRENCIES = { USD: ['$', 'US Dollar'], GHS: ['GH¢', 'Ghanaian Cedi'], NGN: ['₦', 'Nigerian Naira'], KES: ['KSh', 'Kenyan Shilling'], ZAR: ['R', 'South African Rand'], UGX: ['USh', 'Ugandan Shilling'], TZS: ['TSh', 'Tanzanian Shilling'], RWF: ['FRw', 'Rwandan Franc'], XAF: ['FCFA', 'Central African CFA'], XOF: ['CFA', 'West African CFA'], EGP: ['E£', 'Egyptian Pound'], MAD: ['DH', 'Moroccan Dirham'], ZMW: ['ZK', 'Zambian Kwacha'], MZN: ['MT', 'Mozambican Metical'], ETB: ['Br', 'Ethiopian Birr'], BWP: ['P', 'Botswana Pula'] };
 
-let curStep = 1, selectedCat = null, selectedTier = null, selectedTime = null, rates = { USD: 1 };
+const CALENDLY_URL = 'https://calendly.com/esperpartners/discovery-call'; // set to '' to use manual date/time picker
+let curStep = 1, selectedCat = null, selectedTier = null, selectedTime = null, selectedDate = null, rates = { USD: 1 };
 
 function go(n) {
   const forward = n > curStep;
@@ -540,7 +555,7 @@ function go(n) {
   window.scrollTo(0, 0);
   if (n === 2) animateCards('#categoryGrid .opt-card', 60);
   if (n === 3) { renderTiers(); animateCards('#tierGrid .tier-card', 80); }
-  if (n === 4) animateCards('.slot-btn', 30);
+  if (n === 4) { initScheduler(); animateCards('.slot-btn', 30); }
   if (n === 5) renderQuote();
   if (n === 1) typePrompt('step1 .prompt', './discover');
   if (n === 2) typePrompt('step2 .prompt', 'what brings you here?');
@@ -617,8 +632,52 @@ function renderTiers() {
   document.getElementById('scopeSub').textContent = selectedCat ? 'Select a package tier for ' + selectedCat + '.' : 'Select a package tier based on your needs and budget.';
 }
 
-// step 4: meeting scheduler
+// step 4: meeting scheduler (Calendly or manual fallback)
 function initScheduler() {
+  if (CALENDLY_URL) {
+    showCalendly();
+  } else {
+    showManualScheduler();
+  }
+}
+
+function showCalendly() {
+  document.getElementById('manualScheduler').style.display = 'none';
+  document.getElementById('calendlyConfirm').style.display = 'none';
+  const container = document.getElementById('calendlyContainer');
+  container.style.display = 'block';
+  if (!container.querySelector('.calendly-inline-widget')) {
+    container.innerHTML = '<div class="calendly-inline-widget" data-url="' + CALENDLY_URL + '?hide_gdpr_banner=1" style="min-width:320px;height:580px;"></div>';
+    if (window.Calendly && Calendly.initInlineWidgets) {
+      Calendly.initInlineWidgets();
+    }
+  }
+
+  if (!window._calendlyListener) {
+    window._calendlyListener = true;
+    window.addEventListener('message', function(e) {
+    if (e.origin === 'https://calendly.com' && e.data.event && e.data.event === 'calendly.event_scheduled') {
+      const payload = e.data.payload;
+      const eventUri = payload.event.uri;
+      const startTime = new Date(payload.event.start_time);
+      selectedDate = startTime.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+      selectedTime = startTime.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', timeZone:'UTC' }) + ' GMT';
+
+      document.getElementById('calendlyContainer').style.display = 'none';
+      document.getElementById('calendlyConfirm').style.display = 'block';
+      document.getElementById('calendlyEventInfo').textContent = selectedDate + ' at ' + selectedTime;
+      document.getElementById('meetNextBtn').disabled = false;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  });
+  }
+}
+
+function showManualScheduler() {
+  document.getElementById('calendlyContainer').style.display = 'none';
+  document.getElementById('calendlyConfirm').style.display = 'none';
+  document.getElementById('manualScheduler').style.display = 'block';
+
   const input = document.getElementById('meetingDate');
   const today = new Date();
   const minDate = new Date(today);
@@ -631,7 +690,6 @@ function initScheduler() {
 
   renderTimeSlots();
   checkMeetingValid();
-
   input.addEventListener('change', checkMeetingValid);
 }
 
@@ -651,6 +709,7 @@ function renderTimeSlots() {
 function checkMeetingValid() {
   const date = document.getElementById('meetingDate').value;
   const ok = date && selectedTime;
+  selectedDate = date;
   document.getElementById('meetNextBtn').disabled = !ok;
   if (ok) {
     document.getElementById('err-meetingDate').classList.remove('show');
@@ -702,11 +761,11 @@ document.getElementById('detailsForm').addEventListener('submit', async function
   fd.append('service', selectedTier.n);
   fd.append('category', selectedCat);
   fd.append('complexity', 'Fixed');
-  fd.append('description', selectedTier.d + '\n\n' + de + '\n\nDiscovery Call: ' + document.getElementById('meetingDate').value + ' at ' + selectedTime + ' GMT');
+  fd.append('description', selectedTier.d + '\n\n' + de + '\n\nDiscovery Call: ' + selectedDate + ' at ' + selectedTime);
   fd.append('price', selectedTier.p);
   fd.append('estimatedDays', selectedTier.dy);
   fd.append('currency', curCode());
-  fd.append('meetingDate', document.getElementById('meetingDate').value);
+  fd.append('meetingDate', selectedDate);
   fd.append('meetingTime', selectedTime);
   const af = document.getElementById('attachment');
   if (af.files[0]) fd.append('attachment', af.files[0]);
@@ -716,7 +775,7 @@ document.getElementById('detailsForm').addEventListener('submit', async function
     if (d.success) {
       document.getElementById('confirmMsg').textContent = d.message || 'We will review and send a formal proposal within 48 hours.';
       document.getElementById('confirmSummary').innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + selectedTier.dy + ' business days</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">discovery call</span><span>' + document.getElementById('meetingDate').value + ' at ' + selectedTime + ' GMT</span></div>';
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + selectedTier.dy + ' business days</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">discovery call</span><span>' + selectedDate + ' at ' + selectedTime + '</span></div>';
       document.getElementById('confirmMeeting').innerHTML = '<i data-lucide="video" width="16" height="16" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong><br/>Your discovery call link will be sent to <strong>' + em + '</strong> shortly.';
       if (typeof lucide !== 'undefined') lucide.createIcons();
       go(6);
