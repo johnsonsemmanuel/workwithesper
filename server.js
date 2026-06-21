@@ -80,6 +80,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       imgSrc: ["'self'", "data:", "blob:"],
       connectSrc: ["'self'", "https://api.tryesperworks.com", "https://open.er-api.com", "https://api.exchangerate-api.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://assets.calendly.com"],
+      frameSrc: ["'self'", "https://calendly.com"],
       formAction: ["'self'"],
       baseUri: ["'self'"],
       objectSrc: ["'none'"],
