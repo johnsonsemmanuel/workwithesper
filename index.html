@@ -317,7 +317,7 @@
     <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ ./discover</div>
     <h1 class="heading">Let's find the right<br/><span class="hl">service</span> for your business.</h1>
     <p class="sub">Answer a few questions and we'll match you with the perfect package. Takes 2 minutes.</p>
-    <div><button class="btn btn-primary" onclick="go(2)">Start Discovery</button></div>
+    <div><button class="btn btn-primary" onclick="go(2)"><i data-lucide="rocket" width="16" height="16" stroke-width="1.5"></i> Start Discovery</button></div>
     <div style="margin-top:40px;display:flex;gap:24px;flex-wrap:wrap;">
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--green)">01</span> <i data-lucide="search" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> tell us your need</div>
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">02</span> <i data-lucide="package" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> choose your package</div>
@@ -483,38 +483,26 @@
 
 <script>
 const CATS = [
-  { id: 'Brand Development', icon: 'palette', desc: 'Logo, brand identity, rebranding, and visual systems to make your business stand out.', count: 3 },
-  { id: 'Website Development', icon: 'globe', desc: 'Custom websites, CMS, e-commerce, and corporate portals built for performance.', count: 3 },
-  { id: 'Mobile App Development', icon: 'smartphone', desc: 'Cross-platform mobile apps from MVP to full enterprise solutions.', count: 3 },
-  { id: 'Business Consultancy', icon: 'briefcase', desc: 'Strategy, operations, growth planning, and digital transformation for your business.', count: 3 },
-  { id: 'Add-On Services', icon: 'puzzle', desc: 'Brand collateral, email campaigns, product launch kits, and more.', count: 3 },
+  { id: 'Website Development', icon: 'globe', desc: 'Custom websites, CMS, e-commerce, and corporate portals built for performance.', count: 6 },
+  { id: 'Mobile App Development', icon: 'smartphone', desc: 'Cross-platform mobile apps from MVP to full enterprise solutions.', count: 6 },
 ];
 
 const TIERS = {
-  'Brand Development': [
-    { n: 'Starter Brand Kit', p: 150, d: 'Get your brand off the ground', f: ['Logo (2 concepts)', 'Color palette + font guide', 'Business card', 'Social media kit'], dy: 5 },
-    { n: 'Business Brand Identity', p: 300, d: 'A brand that commands trust', f: ['Logo (3-4 concepts)', 'Full brand guide PDF', 'Stationery set', 'Brand voice & tone'], dy: 10, pop: true },
-    { n: 'Corporate Rebrand', p: 700, x: 1000, d: 'Full transformation', f: ['Brand audit', 'Rebrand strategy', 'New identity system', 'Campaign assets'], dy: 21 },
-  ],
   'Website Development': [
-    { n: 'Basic Website', p: 600, d: 'Professional online presence', f: ['3-5 pages, responsive', 'Contact form', 'Domain, SSL + 1yr hosting', '30-day delivery'], dy: 14, pop: true },
-    { n: 'Standard Website', p: 1000, x: 1700, d: 'Most popular choice', f: ['5-10 pages, CMS', 'SEO + Google integration', 'Payment (up to 2)', 'Booking + dashboards'], dy: 21 },
-    { n: 'Custom / Corporate', p: 2500, x: 5000, d: 'Complex systems', f: ['Custom CMS', 'Advanced UI/UX', 'Custom functionality', '3rd-party integrations'], dy: 45 },
+    { n: 'Basic Website', p: 600, d: 'Professional online presence', f: ['3-5 responsive pages', 'Contact form', 'Domain, SSL + 1yr hosting', 'Mobile-friendly design'], dy: 14, pop: true },
+    { n: 'Standard Website', p: 1200, d: 'Built to grow your brand', f: ['5-10 pages with CMS', 'Blog/news section', 'SEO optimization', 'Social media integration'], dy: 21 },
+    { n: 'Business Website', p: 1800, x: 2200, d: 'Full-featured business presence', f: ['10-15 pages with CMS', 'Advanced SEO + analytics', 'Google Maps + reviews', 'Custom contact forms'], dy: 30 },
+    { n: 'E-commerce Store', p: 3000, x: 4500, d: 'Sell online with ease', f: ['Product catalog (up to 100)', 'Shopping cart + checkout', 'Payment gateway', 'Inventory management'], dy: 45 },
+    { n: 'Custom Web Application', p: 5000, x: 8000, d: 'Complex functionality, your way', f: ['Custom UI/UX design', 'API integrations', 'User accounts + dashboards', 'Database architecture'], dy: 60 },
+    { n: 'Enterprise Portal', p: 7000, x: 12000, d: 'Enterprise-grade platform', f: ['Multi-role access control', 'Advanced data dashboards', 'Third-party integrations', 'Ongoing support'], dy: 90 },
   ],
   'Mobile App Development': [
-    { n: 'Basic MVP App', p: 2500, d: 'Validate your concept', f: ['Up to 5 screens', 'Firebase backend', 'Android + iOS', 'Admin panel'], dy: 30 },
-    { n: 'Standard App', p: 3700, x: 5000, d: 'Feature-rich app', f: ['Custom UI design', 'API + database', 'Push notifications', 'Admin dashboard'], dy: 60, pop: true },
-    { n: 'Enterprise Solution', p: 6500, x: 12000, d: 'Mission-critical', f: ['Advanced architecture', 'Multi-role access', 'Payment integration', 'Ongoing maintenance'], dy: 90 },
-  ],
-  'Business Consultancy': [
-    { n: 'Startup Advisory', p: 100, d: 'Clarity before resources', f: ['2-hr strategy session', 'Market entry plan', 'Pricing guidance'], dy: 3 },
-    { n: 'SME Growth Plan', p: 350, x: 800, d: 'Structure for scale', f: ['Business audit', 'Operations setup', 'Growth roadmap', 'Digital strategy'], dy: 14, pop: true },
-    { n: 'Corporate Strategy', p: 1200, x: 2500, d: 'Data-driven growth', f: ['In-depth audit', 'Marketing plan', '6-month roadmap', 'CRM/HR/Finance setup'], dy: 90 },
-  ],
-  'Add-On Services': [
-    { n: 'Brand Collateral Set', p: 170, d: 'Brand expression', f: ['Flyer + poster', 'Brochure (3-fold)', 'Social templates', 'Brand merchandise guide'], dy: 7 },
-    { n: 'Email Campaign Setup', p: 350, d: 'Engage your audience', f: ['Mailchimp setup', '3-email welcome series', 'List segmentation', '30-day support'], dy: 7, pop: true },
-    { n: 'Product Launch Kit', p: 500, x: 800, d: 'Ship with impact', f: ['Landing page', 'Press release', 'Social campaign', 'Launch checklist'], dy: 14 },
+    { n: 'Basic MVP App', p: 2500, d: 'Validate your idea fast', f: ['Up to 5 screens', 'Firebase backend', 'Android + iOS (cross-platform)', 'Basic admin panel'], dy: 30 },
+    { n: 'Standard App', p: 4000, x: 5500, d: 'Feature-rich mobile experience', f: ['Custom UI/UX design', 'API + database setup', 'Push notifications', 'Admin dashboard'], dy: 45, pop: true },
+    { n: 'E-commerce Mobile App', p: 5500, x: 7500, d: 'Mobile storefront', f: ['Product catalog + search', 'Cart + secure checkout', 'Payment gateway', 'Order tracking'], dy: 60 },
+    { n: 'Enterprise Mobile Solution', p: 8000, x: 14000, d: 'Mission-critical app', f: ['Advanced architecture', 'Multi-role access', 'Real-time data sync', 'Ongoing maintenance'], dy: 90 },
+    { n: 'Native iOS App (Swift)', p: 6000, x: 9000, d: 'Pure iOS experience', f: ['Swift + SwiftUI', 'Apple Pay integration', 'iCloud sync', 'App Store submission'], dy: 60 },
+    { n: 'Native Android App (Kotlin)', p: 5500, x: 8500, d: 'Pure Android experience', f: ['Kotlin + Jetpack', 'Google Pay integration', 'Material Design UI', 'Play Store submission'], dy: 60 },
   ],
 };
 
@@ -631,7 +619,7 @@ function renderTiers() {
     const ps = mp > p ? s + fp(p) + ' - ' + fp(mp) : s + fp(p);
     const d = document.createElement('div');
     d.className = 'tier-card' + (selectedTier === t ? ' selected' : '') + (t.pop ? ' featured' : '');
-    d.innerHTML = (t.pop ? '<div class="featured-mark">popular</div>' : '') +
+    d.innerHTML = (t.pop ? '<div class="featured-mark"><i data-lucide="award" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> popular</div>' : '') +
       '<h3>' + t.n + '</h3><div class="tier-desc">' + t.d + '</div><div class="tier-price">' + ps + ' <span>USD</span></div><div><span class="days-badge">' + t.dy + ' business days</span></div><ul class="tier-features">' + t.f.map(f => '<li>' + f + '</li>').join('') + '</ul><div class="btn btn-primary btn-block btn-sm">Select</div>';
     d.onclick = () => { selectedTier = t; document.querySelectorAll('#tierGrid .tier-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('tierNextBtn').disabled = false; saveState(); };
     g.appendChild(d);
@@ -849,13 +837,12 @@ if (savedStep !== null) {
   var savedTier = (function() { try { return JSON.parse(localStorage.getItem('esp_tier')); } catch(e) { return null; } })();
   var savedDate = (function() { try { return localStorage.getItem('esp_date'); } catch(e) { return null; } })();
   var savedTime = (function() { try { return localStorage.getItem('esp_time'); } catch(e) { return null; } })();
-  if (savedCat) selectedCat = savedCat;
-  if (savedTier) selectedTier = savedTier;
+  if (savedCat) { selectedCat = savedCat; document.getElementById('catNextBtn').disabled = false; renderCategories(); }
+  if (savedTier) { selectedTier = savedTier; document.getElementById('tierNextBtn').disabled = false; if (savedCat) renderTiers(); }
   if (savedDate) selectedDate = savedDate;
   if (savedTime) selectedTime = savedTime;
-  if (savedCat) document.getElementById('catNextBtn').disabled = false;
-  if (savedTier) document.getElementById('tierNextBtn').disabled = false;
   if (savedDate && savedTime) document.getElementById('meetNextBtn').disabled = false;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
   go(savedStep);
 }
 </script>
