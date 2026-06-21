@@ -71,15 +71,19 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
+    useDefaults: false,
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://assets.calendly.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       imgSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'", "https://api.tryesperworks.com", "https://open.er-api.com", "https://api.exchangerate-api.com"],
+      connectSrc: ["'self'", "https://api.tryesperworks.com", "https://open.er-api.com", "https://api.exchangerate-api.com", "https://cdnjs.cloudflare.com"],
       formAction: ["'self'"],
       baseUri: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
     },
   },
 }));
@@ -469,6 +473,15 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
         sanitized.invoiceUrl = inv?.payment_url || (inv?.signing_token ? 'https://tryesperworks.com/invoices/pay/' + inv.signing_token : null);
         sanitized.invoiceNumber = inv?.invoice_number || inv?.id || null;
         if (inv?.id) {
+          // Mark as sent before triggering email
+          try {
+            await fetch(ESPERWORKS_API + '/invoices/' + inv.id, {
+              method: 'PATCH',
+              headers: { 'Authorization': 'Bearer ' + process.env.ESPERWORKS_API_KEY, 'X-API-Key': process.env.ESPERWORKS_API_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'sent' }),
+            });
+          } catch (e3) { logger.warn('Invoice status update failed', { error: e3.message, invoice_id: inv.id }); }
+
           try {
             const sendBody = {};
             if (sanitized.email) sendBody.via_email = true;
@@ -479,13 +492,15 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
               body: JSON.stringify(sendBody),
             });
             if (sendRes.ok) {
-              logger.info('Invoice sent to client', { invoice_id: inv.id });
+              logger.info('Invoice sent to client', { invoice_id: inv.id, via_email: !!sanitized.email, via_sms: !!sanitized.phone });
             } else {
               const sendErr = await sendRes.text();
               logger.warn('Invoice send rejected', { status: sendRes.status, body: sendErr, invoice_id: inv.id });
+              errors.push('Invoice send: ' + (sendRes.status === 422 ? 'Please check email/phone on the client' : sendErr.slice(0,100)));
             }
           } catch (e2) {
             logger.warn('Invoice send network error', { error: e2.message, invoice_id: inv.id });
+            errors.push('Invoice send network error');
           }
         }
       } catch (e) {
