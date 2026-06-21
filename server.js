@@ -175,7 +175,7 @@ function buildQuoteEmail(data) {
   const formattedPrice = converted >= 1000 ? converted.toLocaleString() : String(converted);
 
   return {
-    subject: `New Quote Request: ${service} — Esper Partners`,
+    subject: `New Quote Request: ${service} - Esper Partners`,
     clientHtml: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #f8fafc;">
         <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; border-radius: 12px; text-align: center;">
@@ -306,7 +306,7 @@ async function createEsperWorksInvoice(data) {
     issue_date: today.toISOString().split('T')[0],
     due_date: dueDate.toISOString().split('T')[0],
     items: [{
-      description: `${data.service} — ${data.complexity} Package`,
+      description: `${data.service} - ${data.complexity} Package`,
       quantity: 1,
       rate: data.price,
     }],
@@ -447,7 +447,7 @@ app.listen(PORT, () => {
   const hasEsper = !!process.env.ESPERWORKS_API_KEY;
   const hasEmail = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
   if (!hasEsper && !hasEmail) {
-    logger.warn('No API keys configured — running in preview mode');
+    logger.warn('No API keys configured - running in preview mode');
   } else {
     logger.info('Services', { esperworks: hasEsper, email: hasEmail });
   }
