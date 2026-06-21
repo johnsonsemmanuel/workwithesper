@@ -317,7 +317,7 @@
     <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ ./discover</div>
     <h1 class="heading">Let's find the right<br/><span class="hl">service</span> for your business.</h1>
     <p class="sub">Answer a few questions and we'll match you with the perfect package. Takes 2 minutes.</p>
-    <div><button class="btn btn-primary" onclick="go(2)"><i data-lucide="sparkles" width="16" height="16" stroke-width="1.5"></i> Start Discovery</button></div>
+    <div><button class="btn btn-primary" onclick="go(2)">Start Discovery</button></div>
     <div style="margin-top:40px;display:flex;gap:24px;flex-wrap:wrap;">
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--green)">01</span> <i data-lucide="search" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> tell us your need</div>
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">02</span> <i data-lucide="package" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> choose your package</div>
@@ -561,6 +561,15 @@ function go(n) {
   if (n === 3) typePrompt('step3 .prompt', "what's your scope?");
   if (n === 4) typePrompt('step4 .prompt', 'book a discovery call');
   if (n === 5) typePrompt('step5 .prompt', 'your quote');
+  saveState();
+}
+
+function saveState() {
+  try { localStorage.setItem('esp_step', curStep); } catch(e) {}
+  try { if (selectedCat) localStorage.setItem('esp_cat', selectedCat); } catch(e) {}
+  try { if (selectedTier) localStorage.setItem('esp_tier', JSON.stringify(selectedTier)); } catch(e) {}
+  try { if (selectedDate) localStorage.setItem('esp_date', selectedDate); } catch(e) {}
+  try { if (selectedTime) localStorage.setItem('esp_time', selectedTime); } catch(e) {}
 }
 
 function animateCards(sel, delay) {
@@ -605,7 +614,7 @@ function renderCategories() {
     const d = document.createElement('div');
     d.className = 'opt-card' + (selectedCat === c.id ? ' selected' : '');
     d.innerHTML = `<div class="icon"><i data-lucide="${c.icon}" width="26" height="26" stroke-width="1.5"></i></div><h3>${c.id}</h3><p>${c.desc}</p><div class="tag">${c.count} packages</div>`;
-    d.onclick = () => { selectedCat = c.id; document.querySelectorAll('#categoryGrid .opt-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('catNextBtn').disabled = false; };
+    d.onclick = () => { selectedCat = c.id; document.querySelectorAll('#categoryGrid .opt-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('catNextBtn').disabled = false; saveState(); };
     g.appendChild(d);
   });
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -622,9 +631,9 @@ function renderTiers() {
     const ps = mp > p ? s + fp(p) + ' - ' + fp(mp) : s + fp(p);
     const d = document.createElement('div');
     d.className = 'tier-card' + (selectedTier === t ? ' selected' : '') + (t.pop ? ' featured' : '');
-    d.innerHTML = (t.pop ? '<div class="featured-mark"><i data-lucide="star" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> popular</div>' : '') +
+    d.innerHTML = (t.pop ? '<div class="featured-mark">popular</div>' : '') +
       '<h3>' + t.n + '</h3><div class="tier-desc">' + t.d + '</div><div class="tier-price">' + ps + ' <span>USD</span></div><div><span class="days-badge">' + t.dy + ' business days</span></div><ul class="tier-features">' + t.f.map(f => '<li>' + f + '</li>').join('') + '</ul><div class="btn btn-primary btn-block btn-sm">Select</div>';
-    d.onclick = () => { selectedTier = t; document.querySelectorAll('#tierGrid .tier-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('tierNextBtn').disabled = false; };
+    d.onclick = () => { selectedTier = t; document.querySelectorAll('#tierGrid .tier-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('tierNextBtn').disabled = false; saveState(); };
     g.appendChild(d);
   });
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -689,6 +698,7 @@ function showCalendly() {
       document.getElementById('calendlyEventInfo').textContent = selectedDate + ' at ' + selectedTime;
       document.getElementById('meetNextBtn').disabled = false;
       if (typeof lucide !== 'undefined') lucide.createIcons();
+      saveState();
     }
   });
   }
@@ -725,7 +735,7 @@ function renderTimeSlots() {
     b.className = 'slot-btn' + (selectedTime === t ? ' selected' : '');
     b.textContent = t;
     b.type = 'button';
-    b.onclick = () => { selectedTime = t; document.querySelectorAll('.slot-btn').forEach(el => el.classList.remove('selected')); b.classList.add('selected'); checkMeetingValid(); };
+    b.onclick = () => { selectedTime = t; document.querySelectorAll('.slot-btn').forEach(el => el.classList.remove('selected')); b.classList.add('selected'); checkMeetingValid(); saveState(); };
     g.appendChild(b);
   });
 }
@@ -739,6 +749,7 @@ function checkMeetingValid() {
     document.getElementById('err-meetingDate').classList.remove('show');
     document.getElementById('err-meetingTime').classList.remove('show');
   }
+  saveState();
 }
 
 // step 5: quote + form
@@ -829,6 +840,24 @@ if (typeof lucide !== 'undefined') lucide.createIcons();
 renderCategories();
 fetchRates();
 initScheduler();
+
+var savedStep = (function() {
+  try { var s = parseInt(localStorage.getItem('esp_step'), 10); return s >= 2 && s <= 6 ? s : null; } catch(e) { return null; }
+})();
+if (savedStep !== null) {
+  var savedCat = (function() { try { return localStorage.getItem('esp_cat'); } catch(e) { return null; } })();
+  var savedTier = (function() { try { return JSON.parse(localStorage.getItem('esp_tier')); } catch(e) { return null; } })();
+  var savedDate = (function() { try { return localStorage.getItem('esp_date'); } catch(e) { return null; } })();
+  var savedTime = (function() { try { return localStorage.getItem('esp_time'); } catch(e) { return null; } })();
+  if (savedCat) selectedCat = savedCat;
+  if (savedTier) selectedTier = savedTier;
+  if (savedDate) selectedDate = savedDate;
+  if (savedTime) selectedTime = savedTime;
+  if (savedCat) document.getElementById('catNextBtn').disabled = false;
+  if (savedTier) document.getElementById('tierNextBtn').disabled = false;
+  if (savedDate && savedTime) document.getElementById('meetNextBtn').disabled = false;
+  go(savedStep);
+}
 </script>
 </body>
 </html>
