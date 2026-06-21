@@ -244,16 +244,24 @@
 
     .toast {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); z-index: 999;
-      padding: 10px 20px; border: 1px solid var(--border); font-size: 13px;
+      padding: 10px 20px 8px; border: 1px solid var(--border); font-size: 13px;
       font-family: 'JetBrains Mono', monospace;
-      opacity: 0; transition: all 0.3s; max-width: 440px; text-align: center;
+      opacity: 0; transition: all 0.3s; max-width: 440px; text-align: center; overflow: hidden;
     }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .toast-info { background: #0d1117; border-color: var(--text-dim); color: var(--text-dim); }
     .toast-success { background: #0d1117; border-color: var(--orange); color: var(--orange); }
     .toast-error { background: #0d1117; border-color: var(--red); color: var(--red); }
+    .toast-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: currentColor; opacity: 0.4; transition: width 4s linear; width: 0; }
+    .toast.show .toast-bar { width: 100%; }
     .opt-card:focus-visible, .tier-card:focus-visible, .path-card:focus-visible, .slot-btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
     .btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .view { transition: none !important; }
+      .slide-in, .slide-in-back, .fade-in { animation: none !important; opacity: 1 !important; }
+    }
 
     @media (max-width: 768px) {
       .card-grid-2, .card-grid-3 { grid-template-columns: 1fr; }
@@ -450,7 +458,7 @@
     <div class="term-dot g"></div>
   </div>
   <div class="term-title"><span style="color:var(--orange);font-weight:700;">Esper</span><span style="color:var(--text-dim);">Partners</span> <span style="color:var(--text-dim);font-weight:400;margin-left:6px;">~$ discover</span> <span class="loc-info" style="color:var(--text-dim);font-weight:400;margin-left:6px;">&middot; Accra, Ghana</span></div>
-  <div class="step-counter">step <span class="active-step" id="stepNum">1</span>/<span id="totalSteps">6</span></div>
+  <div class="step-counter" id="stepCounter" style="cursor:pointer;" onclick="go(Math.max(1,curStep-1))" title="Go to previous step">step <span class="active-step" id="stepNum">1</span>/<span id="totalSteps">6</span></div>
 </div>
 
 <div class="progress-bar"><div class="fill" id="progressFill" style="width:16%"></div></div>
@@ -614,7 +622,7 @@
           </div>
           <div class="form-group">
             <label for="description"><span class="required">*</span> project details</label>
-            <textarea class="form-control" id="description" required placeholder="Tell us about your project, goals, timeline..." maxlength="3000"></textarea>
+            <textarea class="form-control" id="description" required placeholder="Tell us about your project, goals, timeline..." maxlength="3000" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,200)+'px'"></textarea>
             <div class="field-error" id="err-description">Required</div>
           </div>
           <div class="form-group">
@@ -669,7 +677,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><div class="toast-bar" id="toastBar"></div><span id="toastText"></span></div>
 
 <script>
 const CATS = [
@@ -733,7 +741,7 @@ function go(n) {
   fill.style.width = pct + '%';
   fill.classList.add('glow');
   setTimeout(() => fill.classList.remove('glow'), 500);
-  window.scrollTo(0, 0);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   if (n === 2) animateCards('#categoryGrid .opt-card', 60);
   if (n === 3) { renderTiers(); animateCards('#tierGrid .tier-card', 80); }
   if (n === 4) { animateCards('.path-card', 80); if (selectedPath === 'call' && document.getElementById('schedulerSection').style.display !== 'block') { choosePath('call'); } }
@@ -982,7 +990,8 @@ function renderQuote() {
   var effP = priorityMode ? Math.round(baseP * (1 + PRIORITY_PREMIUM)) : baseP;
   var effMP = priorityMode ? Math.round(baseMP * (1 + PRIORITY_PREMIUM)) : baseMP;
   var el = document.getElementById('quoteSummary');
-  el.innerHTML = '<div class="line"><span class="lbl">service</span><span class="val">' + selectedCat + '</span></div><div class="line"><span class="lbl">package</span><span class="val">' + t.n + '</span></div><div class="line"><span class="lbl">delivery</span><span class="val">' + effDays + ' business days' + (priorityMode ? ' <span style="color:var(--amber)">(priority)</span>' : '') + '</span></div><div style="margin-top:8px;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);font-size:12px;font-family:\'JetBrains Mono\',monospace;color:var(--text-dim);"><div style="display:flex;justify-content:space-between;"><span>USD</span><span>$' + effP.toLocaleString() + (effMP > effP ? ' - $' + effMP.toLocaleString() : '') + '</span></div><div style="display:flex;justify-content:space-between;"><span>' + curCode() + '</span><span>' + s + fp(effP) + (effMP > effP ? ' - ' + s + fp(effMP) : '') + '</span></div></div><div class="total"><span>' + (effMP > effP ? 'from' : 'fixed') + '</span><span>' + s + fp(effP) + '</span></div><div style="margin-top:8px;padding:6px 10px;border:1px solid var(--cyan);color:var(--cyan);font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i data-lucide="shield" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> <strong>50% deposit</strong> required to start</div><div class="priority-toggle' + (priorityMode ? ' active' : '') + '" onclick="togglePriority()"><input type="checkbox"' + (priorityMode ? ' checked' : '') + '><span>Priority Queue — deliver in <strong>' + effDays + ' days</strong> (' + (priorityMode ? '-' : '') + Math.round(PRIORITY_SPEED * 100) + '% faster) at <strong class="premium-label">+' + Math.round(PRIORITY_PREMIUM * 100) + '% premium</strong></span></div>';
+  var etaDate = eta(effDays);
+  el.innerHTML = '<div class="line"><span class="lbl">service</span><span class="val">' + selectedCat + '</span></div><div class="line"><span class="lbl">package</span><span class="val">' + t.n + '</span></div><div class="line"><span class="lbl">delivery</span><span class="val">' + effDays + ' business days <span style="color:var(--text-dim)">(est. ' + etaDate + ')</span>' + (priorityMode ? ' <span style="color:var(--amber)">(priority)</span>' : '') + '</span></div><div style="margin-top:8px;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);font-size:12px;font-family:\'JetBrains Mono\',monospace;color:var(--text-dim);"><div style="display:flex;justify-content:space-between;"><span>USD</span><span>$' + effP.toLocaleString() + (effMP > effP ? ' - $' + effMP.toLocaleString() : '') + '</span></div><div style="display:flex;justify-content:space-between;"><span>' + curCode() + '</span><span>' + s + fp(effP) + (effMP > effP ? ' - ' + s + fp(effMP) : '') + '</span></div></div><div class="total"><span>' + (effMP > effP ? 'from' : 'fixed') + '</span><span>' + s + fp(effP) + '</span></div><div style="margin-top:8px;padding:6px 10px;border:1px solid var(--cyan);color:var(--cyan);font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i data-lucide="shield" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> <strong>50% deposit</strong> required to start</div><div class="priority-toggle' + (priorityMode ? ' active' : '') + '" onclick="togglePriority()"><input type="checkbox"' + (priorityMode ? ' checked' : '') + '><span>Priority Queue — deliver in <strong>' + effDays + ' days</strong> (est. ' + etaDate + ') (' + (priorityMode ? '-' : '') + Math.round(PRIORITY_SPEED * 100) + '% faster) at <strong class="premium-label">+' + Math.round(PRIORITY_PREMIUM * 100) + '% premium</strong></span></div>';
   restoreFormDraft();
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
@@ -1020,7 +1029,7 @@ function downloadPDF() {
     var lines = [
       ['Service', selectedCat],
       ['Package', t.n],
-      ['Delivery', effDays + ' business days' + (priorityMode ? ' (priority)' : '')],
+      ['Delivery', effDays + ' business days (est. ' + eta(effDays) + ')' + (priorityMode ? ' (priority)' : '')],
       ['Estimated Price', '$' + effP.toLocaleString() + (effMP > effP ? ' - $' + effMP.toLocaleString() : '')],
     ];
     lines.forEach(function(l) {
@@ -1121,15 +1130,26 @@ function updateRateInfo() {
 }
 
 // form submit
+function eta(businessDays) {
+  var d = new Date(); var n = 0;
+  while (n < businessDays) { d.setDate(d.getDate() + 1); var w = d.getDay(); if (w !== 0 && w !== 6) n++; }
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+document.addEventListener('keydown', function(e) { if (e.ctrlKey && e.key === 'Enter' && curStep === 5) document.getElementById('detailsForm').requestSubmit(); });
+
 document.getElementById('detailsForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   let ok = true;
   const fn = document.getElementById('fullName').value.trim(), em = document.getElementById('email').value.trim(), de = document.getElementById('description').value.trim();
-  ['fullName', 'email', 'description'].forEach(id => document.getElementById('err-' + id).classList.remove('show'));
-  if (!fn) { document.getElementById('err-fullName').classList.add('show'); ok = false; }
-  if (!de) { document.getElementById('err-description').classList.add('show'); ok = false; }
-  if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { document.getElementById('err-email').classList.add('show'); ok = false; }
-  if (!ok) return;
+  ['fullName', 'email', 'description'].forEach(id => { document.getElementById('err-' + id).classList.remove('show'); document.getElementById(id).classList.remove('error'); });
+  if (!fn) { document.getElementById('err-fullName').classList.add('show'); document.getElementById('fullName').classList.add('error'); ok = false; }
+  if (!de) { document.getElementById('err-description').classList.add('show'); document.getElementById('description').classList.add('error'); ok = false; }
+  if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { document.getElementById('err-email').classList.add('show'); document.getElementById('email').classList.add('error'); ok = false; }
+  if (!ok) {
+    var firstErr = document.querySelector('.field-error.show');
+    if (firstErr) { var inp = document.getElementById(firstErr.id.replace('err-','')); if (inp) inp.focus({preventScroll:true}); firstErr.scrollIntoView({behavior:'smooth',block:'center'}); }
+    return;
+  }
   const btn = document.getElementById('submitBtn');
   btn.classList.add('loading'); btn.disabled = true;
   const fd = new FormData();
@@ -1163,7 +1183,7 @@ document.getElementById('detailsForm').addEventListener('submit', async function
       var statusLine = isInvoice ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">status</span><span style="color:var(--orange)">invoice sent</span></div>' : '';
       var priorityLine = priorityMode ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">priority</span><span style="color:var(--amber)">yes</span></div>' : '';
       document.getElementById('confirmSummary').innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + effDays + ' business days' + (priorityMode ? ' <span style="color:var(--amber)">(priority)</span>' : '') + '</span></div>' + meetingLine + priorityLine + statusLine;
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + effDays + ' business days <span style="color:var(--text-dim)">(est. ' + eta(effDays) + ')</span>' + (priorityMode ? ' <span style="color:var(--amber)">(priority)</span>' : '') + '</span></div>' + meetingLine + priorityLine + statusLine;
       if (d.paymentUrl) {
         document.getElementById('confirmMeeting').innerHTML = '<div style="padding:12px;border:1px solid var(--orange);color:var(--orange);font-family:\'JetBrains Mono\',monospace;font-size:12px;"><i data-lucide="external-link" width="14" height="14" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> <a href="' + d.paymentUrl + '" target="_blank" style="color:var(--orange);text-decoration:underline;">Pay Invoice Online</a> — cards, mobile money &amp; bank transfer</div>';
       } else if (selectedDate && selectedTime) {
@@ -1228,8 +1248,14 @@ function openTierDetails(tier, catName) {
 function closeTierDetails() { document.getElementById('tierModal').classList.remove('show'); }
 function toast(m, t) {
   const o = document.getElementById('toast');
-  o.textContent = m; o.className = 'toast toast-' + (t || 'info');
-  void o.offsetWidth; o.classList.add('show');
+  const bar = document.getElementById('toastBar');
+  const txt = document.getElementById('toastText');
+  txt.textContent = m; o.className = 'toast toast-' + (t || 'info');
+  bar.style.transition = 'none'; bar.style.width = '0';
+  void o.offsetWidth;
+  o.classList.add('show');
+  bar.style.transition = 'width 4s linear';
+  requestAnimationFrame(function() { bar.style.width = '100%'; });
   clearTimeout(o._hide); o._hide = setTimeout(() => o.classList.remove('show'), 4000);
 }
 
