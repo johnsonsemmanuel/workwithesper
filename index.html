@@ -18,16 +18,16 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #0d1117;
-      --bg-card: #161b22;
-      --bg-hover: #1c2333;
-      --border: #30363d;
-      --text: #e6edf3;
-      --text-dim: #8b949e;
-      --green: #3fb950;
-      --cyan: #58a6ff;
-      --amber: #d29922;
-      --red: #f85149;
+      --bg: #0b0d11;
+      --bg-card: #121418;
+      --bg-hover: #181b22;
+      --border: #2a2d35;
+      --text: #e8e6e3;
+      --text-dim: #8b8580;
+      --orange: #c2410c;
+      --cyan: #ea580c;
+      --amber: #b45309;
+      --red: #dc2626;
       --radius: 0;
     }
     html { height: 100%; }
@@ -41,7 +41,7 @@
       overflow: hidden;
     }
     .mono { font-family: 'JetBrains Mono', monospace; }
-    ::selection { background: var(--green); color: #000; }
+    ::selection { background: var(--orange); color: #fff; }
 
     .term-bar {
       background: #161b22;
@@ -54,15 +54,15 @@
     .term-dot { width: 10px; height: 10px; border-radius: 50%; }
     .term-dot.r { background: var(--red); }
     .term-dot.y { background: var(--amber); }
-    .term-dot.g { background: var(--green); }
+    .term-dot.g { background: var(--orange); }
     .term-title { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
-    .term-title span { color: var(--green); }
+    .term-title span { color: var(--orange); }
 
     .step-counter {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px; color: var(--text-dim);
     }
-    .step-counter .active-step { color: var(--green); }
+    .step-counter .active-step { color: var(--orange); }
 
     .view {
       display: none;
@@ -86,11 +86,11 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px; color: var(--text-dim); margin-bottom: 8px;
     }
-    .prompt .dollar { color: var(--green); vertical-align: middle; }
+    .prompt .dollar { color: var(--orange); vertical-align: middle; }
     .prompt .dollar i { vertical-align: middle; }
 
     .heading { font-size: 26px; font-weight: 700; line-height: 1.25; margin-bottom: 10px; }
-    .heading .hl { color: var(--green); }
+    .heading .hl { color: var(--orange); }
     .sub { color: var(--text-dim); font-size: 14px; line-height: 1.6; max-width: 520px; margin-bottom: 28px; }
 
     .card-grid { display: grid; gap: 10px; }
@@ -106,9 +106,9 @@
       opacity: 0; transform: translateY(16px);
     }
     .opt-card.show { opacity: 1; transform: translateY(0); transition: opacity 0.35s cubic-bezier(0.22,1,0.36,1), transform 0.35s cubic-bezier(0.22,1,0.36,1), border-color 0.2s, box-shadow 0.2s; }
-    .opt-card:hover { border-color: var(--green); transform: translateY(-2px); }
+    .opt-card:hover { border-color: var(--orange); transform: translateY(-2px); }
     .opt-card.show:hover { transform: translateY(-2px); }
-    .opt-card.selected { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 24px rgba(63,185,80,0.08); }
+    .opt-card.selected { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 0 24px rgba(194,65,12,0.12); }
     .opt-card .icon { margin-bottom: 8px; }
     .opt-card .icon i { width: 26px; height: 26px; stroke-width: 1.5; }
     .opt-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
@@ -118,7 +118,7 @@
       font-family: 'JetBrains Mono', monospace; font-size: 10px;
       color: var(--text-dim); border: 1px solid var(--border); padding: 2px 8px;
     }
-    .opt-card.selected .tag { border-color: var(--green); color: var(--green); }
+    .opt-card.selected .tag { border-color: var(--orange); color: var(--orange); }
 
     .tier-card {
       background: var(--bg-card);
@@ -130,9 +130,9 @@
       transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
     }
     .tier-card.show { opacity: 1; transform: translateY(0); transition: opacity 0.4s cubic-bezier(0.22,1,0.36,1), transform 0.4s cubic-bezier(0.22,1,0.36,1), border-color 0.2s, box-shadow 0.2s; }
-    .tier-card:hover { border-color: var(--green); transform: translateY(-3px); }
+    .tier-card:hover { border-color: var(--orange); transform: translateY(-3px); }
     .tier-card.show:hover { transform: translateY(-3px); }
-    .tier-card.selected { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 24px rgba(63,185,80,0.08); }
+    .tier-card.selected { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 0 24px rgba(194,65,12,0.12); }
     .tier-card.featured { border-color: var(--cyan); }
     .tier-card.featured.selected { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 24px rgba(88,166,255,0.1); }
     .tier-card.featured .featured-mark {
@@ -143,7 +143,7 @@
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .tier-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
     .tier-desc { color: var(--text-dim); font-size: 13px; margin-bottom: 10px; }
-    .tier-price { font-size: 22px; font-weight: 700; color: var(--green); margin: 6px 0; }
+    .tier-price { font-size: 22px; font-weight: 700; color: var(--orange); margin: 6px 0; }
     .tier-price span { font-size: 12px; color: var(--text-dim); font-weight: 400; }
     .days-badge {
       font-family: 'JetBrains Mono', monospace;
@@ -155,7 +155,7 @@
       font-size: 13px; color: var(--text-dim); padding: 3px 0;
       font-family: 'JetBrains Mono', monospace;
     }
-    .tier-features li::before { content: '> '; color: var(--green); }
+    .tier-features li::before { content: '> '; color: var(--orange); }
 
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
@@ -167,14 +167,14 @@
       position: relative; overflow: hidden;
     }
     .btn i { width: 16px; height: 16px; stroke-width: 1.5; }
-    .btn:hover { border-color: var(--green); color: var(--green); }
+    .btn:hover { border-color: var(--orange); color: var(--orange); }
     .btn:active { transform: scale(0.96); }
-    .btn::after { content: ''; position: absolute; inset: 0; background: var(--green); opacity: 0; transition: opacity 0.3s; }
+    .btn::after { content: ''; position: absolute; inset: 0; background: var(--orange); opacity: 0; transition: opacity 0.3s; }
     .btn:hover::after { opacity: 0.04; }
-    .btn-primary { background: var(--green); color: #000; border-color: var(--green); font-weight: 600; }
-    .btn-primary:hover { background: #2ea043; color: #000; }
+    .btn-primary { background: var(--orange); color: #fff; border-color: var(--orange); font-weight: 600; }
+    .btn-primary:hover { background: #9a3412; color: #fff; }
     .btn-outline { border-color: var(--cyan); color: var(--cyan); }
-    .btn-outline:hover { background: var(--cyan); color: #000; }
+    .btn-outline:hover { background: var(--cyan); color: #fff; }
     .btn-block { width: 100%; justify-content: center; }
     .btn-sm { padding: 6px 14px; font-size: 11px; }
 
@@ -190,7 +190,7 @@
       background: var(--bg); color: var(--text);
       font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none;
     }
-    .form-control:focus { border-color: var(--green); }
+    .form-control:focus { border-color: var(--orange); }
     .form-control.error { border-color: var(--red); }
     .field-error { font-size: 10px; color: var(--red); font-family: 'JetBrains Mono', monospace; margin-top: 2px; display: none; }
     .field-error.show { display: block; }
@@ -201,7 +201,7 @@
     .quote-summary .line { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
     .quote-summary .line .lbl { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
     .quote-summary .line .val { font-weight: 500; }
-    .quote-summary .total { font-size: 20px; font-weight: 700; color: var(--green); padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; display: flex; justify-content: space-between; }
+    .quote-summary .total { font-size: 20px; font-weight: 700; color: var(--orange); padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; display: flex; justify-content: space-between; }
 
     .actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
     .actions .btn { min-width: 120px; justify-content: center; }
@@ -209,10 +209,10 @@
 
     .success-mark {
       display: flex; align-items: center; justify-content: center;
-      width: 56px; height: 56px; border: 2px solid var(--green);
+      width: 56px; height: 56px; border: 2px solid var(--orange);
       margin: 0 auto 16px;
     }
-    .success-mark span { font-size: 28px; color: var(--green); }
+    .success-mark span { font-size: 28px; color: var(--orange); }
 
     .file-upload { position: relative; }
     .file-upload input[type=file] { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; top: 0; left: 0; }
@@ -222,17 +222,17 @@
       background: var(--bg); color: var(--text-dim);
       font-family: 'JetBrains Mono', monospace; font-size: 12px;
     }
-    .file-upload.has-file .file-upload-label { border-color: var(--green); color: var(--green); border-style: solid; }
+    .file-upload.has-file .file-upload-label { border-color: var(--orange); color: var(--orange); border-style: solid; }
     .file-name { font-size: 10px; color: var(--text-dim); margin-left: auto; }
 
     .submit-btn {
-      width: 100%; padding: 10px; border: 1px solid var(--green);
-      background: var(--green); color: #000; font-size: 13px;
+      width: 100%; padding: 10px; border: 1px solid var(--orange);
+      background: var(--orange); color: #fff; font-size: 13px;
       font-weight: 600; cursor: pointer; font-family: 'JetBrains Mono', monospace;
       display: flex; align-items: center; justify-content: center; gap: 6px;
       transition: background 0.2s, opacity 0.2s, transform 0.15s;
     }
-    .submit-btn:hover:not(:disabled) { background: #2ea043; }
+    .submit-btn:hover:not(:disabled) { background: #9a3412; }
     .submit-btn:active:not(:disabled) { transform: scale(0.97); }
     .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .submit-btn .spinner { width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
@@ -247,7 +247,7 @@
       opacity: 0; transition: all 0.3s; max-width: 440px; text-align: center;
     }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-    .toast-success { background: #0d1117; border-color: var(--green); color: var(--green); }
+    .toast-success { background: #0d1117; border-color: var(--orange); color: var(--orange); }
     .toast-error { background: #0d1117; border-color: var(--red); color: var(--red); }
 
     @media (max-width: 640px) {
@@ -260,11 +260,11 @@
     .progress-bar {
       position: fixed; top: 35px; left: 0; right: 0; height: 2px; background: var(--border); z-index: 100;
     }
-    .progress-bar .fill { height: 100%; background: var(--green); transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-    .progress-bar .fill.glow { box-shadow: 0 0 6px var(--green); }
+    .progress-bar .fill { height: 100%; background: var(--orange); transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+    .progress-bar .fill.glow { box-shadow: 0 0 6px var(--orange); }
 
     /* typing cursor */
-    .cursor { display: inline-block; width: 2px; height: 1em; background: var(--green); margin-left: 2px; animation: blink 0.8s step-end infinite; vertical-align: text-bottom; }
+    .cursor { display: inline-block; width: 2px; height: 1em; background: var(--orange); margin-left: 2px; animation: blink 0.8s step-end infinite; vertical-align: text-bottom; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
     /* success checkmark animation */
@@ -281,8 +281,8 @@
       font-family: 'JetBrains Mono', monospace; font-size: 12px;
       transition: border-color 0.15s;
     }
-    .slot-btn:hover { border-color: var(--green); }
-    .slot-btn.selected { border-color: var(--green); background: var(--bg-hover); }
+    .slot-btn:hover { border-color: var(--orange); }
+    .slot-btn.selected { border-color: var(--orange); background: var(--bg-hover); }
     .slot-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: var(--border); }
     .date-input {
       padding: 8px 12px; border: 1px solid var(--border);
@@ -290,7 +290,7 @@
       font-family: 'JetBrains Mono', monospace; font-size: 13px;
       cursor: pointer; width: 100%;
     }
-    .date-input:focus { border-color: var(--green); }
+    .date-input:focus { border-color: var(--orange); }
 
     /* choice path cards */
     .path-card {
@@ -302,9 +302,9 @@
       opacity: 0; transform: translateY(16px);
     }
     .path-card.show { opacity: 1; transform: translateY(0); transition: opacity 0.35s cubic-bezier(0.22,1,0.36,1), transform 0.35s cubic-bezier(0.22,1,0.36,1), border-color 0.2s, box-shadow 0.2s; }
-    .path-card:hover { border-color: var(--green); transform: translateY(-3px); }
+    .path-card:hover { border-color: var(--orange); transform: translateY(-3px); }
     .path-card.show:hover { transform: translateY(-3px); }
-    .path-card.selected { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 24px rgba(63,185,80,0.08); }
+    .path-card.selected { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 0 24px rgba(194,65,12,0.12); }
     .path-card .path-icon { margin-bottom: 10px; }
     .path-card .path-icon i { width: 32px; height: 32px; stroke-width: 1.5; }
     .path-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
@@ -346,9 +346,9 @@
       width: 1px; background: var(--border);
     }
     .timeline .tl-num {
-      width: 18px; height: 18px; border: 1px solid var(--green);
+      width: 18px; height: 18px; border: 1px solid var(--orange);
       display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--green);
+      font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--orange);
       flex-shrink: 0;
     }
     .timeline .tl-text { font-size: 12px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
@@ -356,7 +356,7 @@
 
     /* countdown */
     #countdownTimer {
-      font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--green);
+      font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--orange);
     }
 
     /* footer */
@@ -365,13 +365,13 @@
       text-align: center; padding: 12px 0; border-top: 1px solid var(--border); margin-top: 20px;
     }
     .foot-note a { color: var(--text-dim); text-decoration: none; }
-    .foot-note a:hover { color: var(--green); }
+    .foot-note a:hover { color: var(--orange); }
 
     /* shimmer on form-card during submit */
     .form-card.shimmer { position: relative; overflow: hidden; }
     .form-card.shimmer::after {
       content: ''; position: absolute; inset: 0;
-      background: linear-gradient(90deg, transparent 0%, rgba(63,185,80,0.04) 50%, transparent 100%);
+      background: linear-gradient(90deg, transparent 0%, rgba(194,65,12,0.06) 50%, transparent 100%);
       animation: shimmer 1.5s ease-in-out infinite;
       pointer-events: none;
     }
@@ -404,7 +404,7 @@
     <div class="term-dot y"></div>
     <div class="term-dot g"></div>
   </div>
-  <div class="term-title">espr@partners:<span>~</span>$ discover <span style="color:var(--text-dim);font-weight:400;margin-left:12px;">Esper Partners LLC &middot; Accra, Ghana</span></div>
+  <div class="term-title"><span style="color:var(--orange);font-weight:700;">Esper</span><span style="color:var(--text-dim);">Partners</span> <span style="color:var(--text-dim);font-weight:400;margin-left:8px;">&middot;</span> <span style="color:var(--text-dim);font-weight:400;">~$ discover</span> <span style="color:var(--text-dim);font-weight:400;margin-left:8px;">Esper Partners LLC &middot; Accra, Ghana</span></div>
   <div class="step-counter">step <span class="active-step" id="stepNum">1</span>/<span id="totalSteps">6</span></div>
 </div>
 
@@ -418,7 +418,7 @@
     <p class="sub">Answer a few questions and we'll match you with the perfect package. Takes 2 minutes.</p>
     <div><button class="btn btn-primary" onclick="go(2)"><i data-lucide="rocket" width="16" height="16" stroke-width="1.5"></i> Start Discovery</button></div>
     <div style="margin-top:40px;display:flex;gap:24px;flex-wrap:wrap;">
-      <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--green)">01</span> <i data-lucide="search" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> tell us your need</div>
+      <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--orange)">01</span> <i data-lucide="search" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> tell us your need</div>
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">02</span> <i data-lucide="package" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> choose your package</div>
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">03</span> <i data-lucide="calendar" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> book a call</div>
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">04</span> <i data-lucide="file-text" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> get your quote</div>
@@ -447,6 +447,14 @@
     <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ <span style="color:var(--cyan)">what's your scope?</span></div>
     <h1 class="heading">What level are you looking for?</h1>
     <p class="sub" id="scopeSub">Select a package tier based on your needs and budget.</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);">
+      <i data-lucide="dollar-sign" width="14" height="14" stroke-width="2" style="color:var(--orange)"></i>
+      <label style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">currency:</label>
+      <select class="currency-select" style="padding:4px 24px 4px 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;">
+        <option value="USD">USD</option><option value="GHS">GHS</option><option value="NGN">NGN</option><option value="KES">KES</option><option value="ZAR">ZAR</option><option value="UGX">UGX</option><option value="TZS">TZS</option><option value="RWF">RWF</option><option value="XAF">XAF</option><option value="XOF">XOF</option><option value="EGP">EGP</option><option value="MAD">MAD</option><option value="ZMW">ZMW</option><option value="MZN">MZN</option><option value="ETB">ETB</option><option value="BWP">BWP</option>
+      </select>
+      <span style="font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;" id="rateInfoStep3"></span>
+    </div>
     <div class="card-grid card-grid-3" id="tierGrid"></div>
     <div class="actions">
       <button class="btn" onclick="go(2)"><i data-lucide="arrow-left" width="14" height="14" stroke-width="2"></i> back</button>
@@ -492,7 +500,7 @@
           </div>
         </div>
         <div id="calendlyConfirm" style="display:none;text-align:center;padding:20px;">
-          <i data-lucide="check-circle" width="40" height="40" stroke-width="1.5" style="color:var(--green)"></i>
+          <i data-lucide="check-circle" width="40" height="40" stroke-width="1.5" style="color:var(--orange)"></i>
           <p style="margin-top:10px;font-weight:600;font-size:15px;">Discovery call booked!</p>
           <p style="color:var(--text-dim);font-size:13px;margin-top:4px;" id="calendlyEventInfo"></p>
         </div>
@@ -517,9 +525,9 @@
     <p class="sub" id="step5Sub">See the breakdown below. Switch currency to see pricing in your local market.</p>
 
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);">
-      <i data-lucide="dollar-sign" width="14" height="14" stroke-width="2" style="color:var(--green)"></i>
+      <i data-lucide="dollar-sign" width="14" height="14" stroke-width="2" style="color:var(--orange)"></i>
       <label style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">currency:</label>
-      <select id="currencySelect" style="padding:4px 24px 4px 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;">
+      <select class="currency-select" style="padding:4px 24px 4px 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;">
         <option value="USD">USD</option><option value="GHS">GHS</option><option value="NGN">NGN</option><option value="KES">KES</option><option value="ZAR">ZAR</option><option value="UGX">UGX</option><option value="TZS">TZS</option><option value="RWF">RWF</option><option value="XAF">XAF</option><option value="XOF">XOF</option><option value="EGP">EGP</option><option value="MAD">MAD</option><option value="ZMW">ZMW</option><option value="MZN">MZN</option><option value="ETB">ETB</option><option value="BWP">BWP</option>
       </select>
       <span style="font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;" id="rateInfo"></span>
@@ -586,7 +594,7 @@
 <!-- STEP 6: CONFIRMATION -->
 <div class="view" id="step6">
   <div class="container" style="display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 56px);text-align:center;">
-    <div class="success-mark"><i data-lucide="check" width="28" height="28" stroke-width="2.5" style="color:var(--green)"></i></div>
+    <div class="success-mark"><i data-lucide="check" width="28" height="28" stroke-width="2.5" style="color:var(--orange)"></i></div>
     <h1 class="heading" style="font-size:22px;">Your request is in.</h1>
     <p class="sub" style="max-width:400px;margin:0 auto 20px;" id="confirmMsg">We'll review and send a formal proposal within 48 hours.</p>
     <div style="background:var(--bg-card);border:1px solid var(--border);padding:16px;margin-bottom:16px;text-align:left;max-width:400px;margin:0 auto 16px;" id="confirmSummary"></div>
@@ -594,7 +602,7 @@
     <div style="max-width:400px;margin:0 auto 16px;" id="timelineContainer"></div>
     <div style="max-width:400px;margin:0 auto 16px;display:none;" id="smsConfirm"></div>
     <div style="max-width:400px;margin:0 auto 20px;" id="contactPerson"></div>
-    <div style="margin-bottom:12px;"><span id="countdownTimer" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);"></span></div>
+    <div style="margin-bottom:12px;"><span id="countdownTimer" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--orange);"></span></div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <a href="https://espergloballtd.com" class="btn"><i data-lucide="external-link" width="14" height="14" stroke-width="2"></i> Visit Website</a>
       <a href="https://wa.me/233208713610" class="btn btn-outline"><i data-lucide="message-circle" width="14" height="14" stroke-width="2"></i> Chat on WhatsApp</a>
@@ -641,7 +649,7 @@ const CONTACT_PERSON = { name: 'Emmanuel Johnson', email: 'emmanuel@espergloball
 const PRIORITY_PREMIUM = 0.3;
 const PRIORITY_SPEED = 0.5;
 let selectedPath = null, curStep = 1, selectedCat = null, selectedTier = null, selectedTime = null, selectedDate = null, rates = { USD: 1 };
-let priorityMode = false, responseDeadline = null, countdownInterval = null;
+let priorityMode = false, responseDeadline = null, countdownInterval = null, selectedCurrency = 'USD';
 
 function go(n) {
   const forward = n > curStep;
@@ -692,6 +700,7 @@ function saveState() {
   try { if (selectedDate) localStorage.setItem('esp_date', selectedDate); } catch(e) {}
   try { if (selectedTime) localStorage.setItem('esp_time', selectedTime); } catch(e) {}
   try { if (selectedPath) localStorage.setItem('esp_path', selectedPath); } catch(e) {}
+  try { localStorage.setItem('esp_currency', selectedCurrency); } catch(e) {}
 }
 
 function animateCards(sel, delay) {
@@ -723,10 +732,19 @@ function typePrompt(sel, text) {
   tick();
 }
 
-function cv(v) { const r = rates[curCode()] || 1; const c = v * r; return c >= 1 ? Math.round(c) : Math.round(c * 100) / 100; }
-function fp(v) { const c = cv(v); return c >= 1000 ? c.toLocaleString() : (Number.isInteger(c) ? c + '' : c.toFixed(2)); }
-function sy() { const c = document.getElementById('currencySelect'); return CURRENCIES[c.value] ? CURRENCIES[c.value][0] : '$'; }
-function curCode() { return document.getElementById('currencySelect').value; }
+function cv(v) { var r = rates[selectedCurrency] || 1; var c = v * r; return c >= 1 ? Math.round(c) : Math.round(c * 100) / 100; }
+function fp(v) { var c = cv(v); return c >= 1000 ? c.toLocaleString() : (Number.isInteger(c) ? c + '' : c.toFixed(2)); }
+function sy() { return CURRENCIES[selectedCurrency] ? CURRENCIES[selectedCurrency][0] : '$'; }
+function curCode() { return selectedCurrency; }
+
+function setCurrency(code) {
+  selectedCurrency = code;
+  document.querySelectorAll('.currency-select').forEach(function(el) { el.value = code; });
+  if (curStep === 3) renderTiers();
+  if (curStep === 5) renderQuote();
+  updateRateInfo();
+  saveState();
+}
 
 // step 2: categories
 function renderCategories() {
@@ -754,7 +772,7 @@ function renderTiers() {
     const d = document.createElement('div');
     d.className = 'tier-card' + (selectedTier === t ? ' selected' : '') + (t.pop ? ' featured' : '');
     d.innerHTML = (t.pop ? '<div class="featured-mark"><i data-lucide="award" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> popular</div>' : '') +
-      '<h3>' + t.n + '</h3><div class="tier-desc">' + t.d + '</div><div class="tier-price">' + ps + ' <span>USD</span></div><div><span class="days-badge">' + t.dy + ' business days</span></div><ul class="tier-features">' + t.f.map(f => '<li>' + f + '</li>').join('') + '</ul><div class="btn btn-primary btn-block btn-sm">Select</div>';
+      '<h3>' + t.n + '</h3><div class="tier-desc">' + t.d + '</div><div class="tier-price">' + ps + ' <span>' + selectedCurrency + '</span></div><div><span class="days-badge">' + t.dy + ' business days</span></div><ul class="tier-features">' + t.f.map(f => '<li>' + f + '</li>').join('') + '</ul><div class="btn btn-primary btn-block btn-sm">Select</div>';
     d.onclick = () => { selectedTier = t; document.querySelectorAll('#tierGrid .tier-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('tierNextBtn').disabled = false; saveState(); };
     g.appendChild(d);
   });
@@ -1003,11 +1021,11 @@ function detectCurrency() {
   try {
     var tzMap = { 'Africa/Accra': 'GHS', 'Africa/Lagos': 'NGN', 'Africa/Nairobi': 'KES', 'Africa/Johannesburg': 'ZAR', 'Africa/Kampala': 'UGX', 'Africa/Dar_es_Salaam': 'TZS', 'Africa/Kigali': 'RWF', 'Africa/Douala': 'XAF', 'Africa/Abidjan': 'XOF', 'Africa/Cairo': 'EGP', 'Africa/Casablanca': 'MAD', 'Africa/Lusaka': 'ZMW', 'Africa/Maputo': 'MZN', 'Africa/Addis_Ababa': 'ETB', 'Africa/Gaborone': 'BWP' };
     var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tzMap[tz]) document.getElementById('currencySelect').value = tzMap[tz];
+    if (tzMap[tz]) setCurrency(tzMap[tz]);
   } catch(e) {}
 }
 
-document.getElementById('currencySelect').addEventListener('change', () => { renderQuote(); updateRateInfo(); });
+document.addEventListener('change', function(e) { if (e.target.classList.contains('currency-select')) { setCurrency(e.target.value); } });
 
 async function fetchRates() {
   try {
@@ -1018,8 +1036,11 @@ async function fetchRates() {
 }
 
 function updateRateInfo() {
-  const c = document.getElementById('currencySelect').value;
-  document.getElementById('rateInfo').textContent = c !== 'USD' && rates[c] ? '1 USD = ' + rates[c].toFixed(4) + ' ' + c : '';
+  var c = selectedCurrency;
+  var el = document.getElementById('rateInfo');
+  if (el) el.textContent = c !== 'USD' && rates[c] ? '1 USD = ' + rates[c].toFixed(4) + ' ' + c : '';
+  var el3 = document.getElementById('rateInfoStep3');
+  if (el3) el3.textContent = c !== 'USD' && rates[c] ? '1 USD = ' + rates[c].toFixed(4) + ' ' + c : '';
 }
 
 // form submit
@@ -1062,12 +1083,12 @@ document.getElementById('detailsForm').addEventListener('submit', async function
       var isInvoice = selectedPath === 'invoice';
       document.getElementById('confirmMsg').textContent = isInvoice ? 'Your invoice has been sent. Work begins after payment is received.' : (d.message || 'We will review and send a formal proposal within 48 hours.');
       var meetingLine = (selectedDate && selectedTime) ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">discovery call</span><span>' + selectedDate + ' at ' + selectedTime + '</span></div>' : '';
-      var statusLine = isInvoice ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">status</span><span style="color:var(--green)">invoice sent</span></div>' : '';
+      var statusLine = isInvoice ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">status</span><span style="color:var(--orange)">invoice sent</span></div>' : '';
       var priorityLine = priorityMode ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">priority</span><span style="color:var(--amber)">yes</span></div>' : '';
       document.getElementById('confirmSummary').innerHTML =
         '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + effDays + ' business days' + (priorityMode ? ' <span style="color:var(--amber)">(priority)</span>' : '') + '</span></div>' + meetingLine + priorityLine + statusLine;
       if (d.paymentUrl) {
-        document.getElementById('confirmMeeting').innerHTML = '<div style="padding:12px;border:1px solid var(--green);color:var(--green);font-family:\'JetBrains Mono\',monospace;font-size:12px;"><i data-lucide="external-link" width="14" height="14" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> <a href="' + d.paymentUrl + '" target="_blank" style="color:var(--green);text-decoration:underline;">Pay Invoice Online</a> — cards, mobile money &amp; bank transfer</div>';
+        document.getElementById('confirmMeeting').innerHTML = '<div style="padding:12px;border:1px solid var(--orange);color:var(--orange);font-family:\'JetBrains Mono\',monospace;font-size:12px;"><i data-lucide="external-link" width="14" height="14" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> <a href="' + d.paymentUrl + '" target="_blank" style="color:var(--orange);text-decoration:underline;">Pay Invoice Online</a> — cards, mobile money &amp; bank transfer</div>';
       } else if (selectedDate && selectedTime) {
         document.getElementById('confirmMeeting').innerHTML = '<i data-lucide="video" width="16" height="16" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong><br/>Your discovery call link will be sent to <strong>' + em + '</strong> shortly.';
       } else {
@@ -1134,6 +1155,8 @@ if (savedStep !== null) {
   if (savedDate) selectedDate = savedDate;
   if (savedTime) selectedTime = savedTime;
   if (savedPath) { selectedPath = savedPath; if (savedStep <= 4) choosePath(savedPath); }
+  var savedCurrency = (function() { try { return localStorage.getItem('esp_currency'); } catch(e) { return null; } })();
+  if (savedCurrency && CURRENCIES[savedCurrency]) { setCurrency(savedCurrency); }
   if (typeof lucide !== 'undefined') lucide.createIcons();
   go(savedStep);
 }
