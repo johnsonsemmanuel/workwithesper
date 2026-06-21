@@ -557,23 +557,20 @@ function animateCards(sel, delay) {
   });
 }
 
-let _typingTmo = null;
 function typePrompt(sel, text) {
   const el = document.querySelector(sel);
   if (!el) return;
-  const container = el;
-  const prefix = container.innerHTML.match(/^.*?(?=<|<span)/)?.[0] || '';
-  const suffix = text;
-  clearTimeout(_typingTmo);
+  clearTimeout(el._typeTmo);
+  el.innerHTML = '<span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ <span class="typing-wrap"><span class="typing-text"></span><span class="cursor"></span></span>';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  const target = el.querySelector('.typing-text');
+  const cursor = el.querySelector('.cursor');
   let i = 0;
-  container.innerHTML = prefix + '<span class="typing-text"></span><span class="cursor"></span>';
-  const target = container.querySelector('.typing-text');
-  const cursor = container.querySelector('.cursor');
   function tick() {
-    if (i <= suffix.length) {
-      target.textContent = suffix.slice(0, i);
+    if (i <= text.length) {
+      target.textContent = text.slice(0, i);
       i++;
-      _typingTmo = setTimeout(tick, 35 + Math.random() * 25);
+      el._typeTmo = setTimeout(tick, 35 + Math.random() * 25);
     } else {
       if (cursor) cursor.style.animation = 'none';
     }
