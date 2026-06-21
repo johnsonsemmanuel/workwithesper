@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Esper Partners</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230b0d11'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='14' font-weight='bold' fill='%23c2410c' text-anchor='middle'%3EEP%3C/text%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --bg: #0b0d11; --bg-card: #121418; --bg-hover: #181b22; --border: #2a2d35; --text: #e8e6e3; --text-dim: #8b8580; --orange: #c2410c; --red: #dc2626; --green: #16a34a; --amber: #b45309; --radius: 0; }
+    html { height: 100%; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; height: 100%; overflow: hidden; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    ::selection { background: var(--orange); color: #fff; }
+
+    .term-bar { background: #161b22; border-bottom: 1px solid var(--border); padding: 6px 16px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .term-dots { display: flex; gap: 6px; }
+    .term-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .term-dot.r { background: var(--red); }
+    .term-dot.y { background: var(--amber); }
+    .term-dot.g { background: var(--orange); }
+    .term-title { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+    .term-title span { color: var(--orange); font-weight: 700; }
+    .term-title .dim { color: var(--text-dim); font-weight: 400; }
+    .badge-admin { font-size: 9px; color: var(--amber); border: 1px solid var(--amber); padding: 1px 6px; font-family: 'JetBrains Mono', monospace; }
+
+    .app { display: flex; height: 100vh; padding-top: 35px; }
+    .sidebar { width: 180px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 12px 0; flex-shrink: 0; overflow-y: auto; }
+    .sidebar .s-item { padding: 8px 16px; cursor: pointer; font-size: 12px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 8px; transition: background 0.15s, color 0.15s; }
+    .sidebar .s-item:hover { background: var(--bg-hover); color: var(--text); }
+    .sidebar .s-item.active { color: var(--orange); background: var(--bg-hover); border-left: 2px solid var(--orange); }
+    .sidebar .s-item i { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .main { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+    .login-wrap { display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .login-box { background: var(--bg-card); border: 1px solid var(--border); padding: 32px; width: 320px; }
+    .login-box h2 { font-size: 18px; margin-bottom: 4px; }
+    .login-box p { color: var(--text-dim); font-size: 12px; margin-bottom: 20px; }
+    .login-box input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; }
+    .login-box input:focus { border-color: var(--orange); }
+    .login-box .btn { width: 100%; padding: 8px; margin-top: 12px; border: 1px solid var(--orange); background: var(--orange); color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; cursor: pointer; font-weight: 600; }
+    .login-box .btn:hover { background: #9a3412; }
+    .login-box .err { color: var(--red); font-size: 11px; font-family: 'JetBrains Mono', monospace; margin-top: 8px; display: none; }
+
+    .hidden { display: none; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); padding: 14px; }
+    .stat-card .num { font-size: 24px; font-weight: 700; color: var(--orange); font-family: 'JetBrains Mono', monospace; }
+    .stat-card .lbl { font-size: 10px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+    .section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .section-title .count { font-size: 11px; color: var(--text-dim); font-weight: 400; font-family: 'JetBrains Mono', monospace; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-weight: 400; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+    td .dim { color: var(--text-dim); }
+    td .ip { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
+    tr:hover { background: var(--bg-hover); }
+    .table-wrap { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border); }
+    .tag { display: inline-block; padding: 1px 6px; font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+    .tag-ok { background: rgba(22,163,74,0.15); color: var(--green); border: 1px solid var(--green); }
+    .tag-err { background: rgba(220,38,38,0.15); color: var(--red); border: 1px solid var(--red); }
+    .tag-warn { background: rgba(180,83,9,0.15); color: var(--amber); border: 1px solid var(--amber); }
+
+    .health-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .health-card { background: var(--bg-card); border: 1px solid var(--border); padding: 14px; }
+    .health-card .h-name { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+    .health-card .h-status { font-size: 13px; font-weight: 600; }
+
+    .country-bar { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+    .country-bar .bar { height: 16px; background: var(--orange); opacity: 0.5; min-width: 2px; }
+    .country-bar .c-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; min-width: 120px; }
+    .country-bar .c-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
+
+    .empty { text-align: center; padding: 40px; color: var(--text-dim); font-size: 13px; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 48px; }
+      .sidebar .s-item span { display: none; }
+      .sidebar .s-item { justify-content: center; padding: 12px 0; }
+      .main { padding: 12px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .login-box { width: 90%; margin: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="term-bar">
+  <div class="term-dots">
+    <div class="term-dot r"></div>
+    <div class="term-dot y"></div>
+    <div class="term-dot g"></div>
+  </div>
+  <div class="term-title"><span>Esper</span><span class="dim">Partners</span> <span class="badge-admin">admin</span></div>
+  <div class="term-title"><span class="dim" id="statusIndicator">disconnected</span></div>
+</div>
+
+<div id="loginView" class="login-wrap">
+  <div class="login-box">
+    <h2>Admin</h2>
+    <p>Enter the admin password to continue.</p>
+    <input type="password" id="passwordInput" placeholder="password" onkeydown="if(event.key==='Enter')login()" autofocus />
+    <button class="btn" onclick="login()">Authenticate</button>
+    <div class="err" id="loginError">Invalid password</div>
+  </div>
+</div>
+
+<div id="appView" class="app hidden">
+  <div class="sidebar">
+    <div class="s-item active" data-tab="overview" onclick="switchTab('overview')"><i data-lucide="layout-dashboard" width="14" height="14" stroke-width="1.5"></i><span>Overview</span></div>
+    <div class="s-item" data-tab="visitors" onclick="switchTab('visitors')"><i data-lucide="users" width="14" height="14" stroke-width="1.5"></i><span>Visitors</span></div>
+    <div class="s-item" data-tab="requests" onclick="switchTab('requests')"><i data-lucide="file-text" width="14" height="14" stroke-width="1.5"></i><span>Requests</span></div>
+    <div class="s-item" data-tab="health" onclick="switchTab('health')"><i data-lucide="activity" width="14" height="14" stroke-width="1.5"></i><span>Health</span></div>
+  </div>
+  <div class="main" id="mainContent">
+    <div class="stats-row" id="statsRow"></div>
+    <div id="tabContent"></div>
+  </div>
+</div>
+
+<script>
+let TOKEN = null;
+function login() {
+  var pwd = document.getElementById('passwordInput').value;
+  fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pwd}) })
+    .then(function(r) { return r.json().then(function(d) { if (r.ok) return d; throw new Error(d.message); }); })
+    .then(function(d) { TOKEN = d.token; document.getElementById('loginView').classList.add('hidden'); document.getElementById('appView').classList.remove('hidden'); loadData(); })
+    .catch(function(e) { document.getElementById('loginError').style.display = 'block'; });
+}
+
+function api(path) {
+  return fetch(path, { headers: { 'x-admin-token': TOKEN } }).then(function(r) { if (!r.ok) { document.getElementById('appView').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden'); throw new Error('Session expired'); } return r.json(); });
+}
+
+var currentTab = 'overview';
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.s-item').forEach(function(el) { el.classList.toggle('active', el.dataset.tab === tab); });
+  renderTab();
+}
+
+function loadData() {
+  api('/api/admin/stats').then(function(d) { window._data = d; renderTab(); }).catch(function(e) {});
+  api('/api/admin/health').then(function(d) { window._health = d; if (currentTab === 'health') renderTab(); }).catch(function(e) {});
+  document.getElementById('statusIndicator').textContent = 'connected';
+}
+
+function renderTab() {
+  var d = window._data;
+  if (!d) return;
+  if (currentTab === 'overview') renderOverview(d);
+  else if (currentTab === 'visitors') renderVisitors(d);
+  else if (currentTab === 'requests') renderRequests(d);
+  else if (currentTab === 'health') renderHealth();
+}
+
+function renderOverview(d) {
+  var s = d.stats;
+  document.getElementById('statsRow').innerHTML =
+    '<div class="stat-card"><div class="num">' + s.totalVisits + '</div><div class="lbl">total visits</div></div>' +
+    '<div class="stat-card"><div class="num">' + s.uniqueVisitors + '</div><div class="lbl">unique visitors</div></div>' +
+    '<div class="stat-card"><div class="num">' + s.visitsToday + '</div><div class="lbl">visits today</div></div>' +
+    '<div class="stat-card"><div class="num">' + s.totalRequests + '</div><div class="lbl">service requests</div></div>' +
+    '<div class="stat-card"><div class="num">' + s.requestsToday + '</div><div class="lbl">requests today</div></div>';
+
+  var html = '';
+  if (d.byCountry && d.byCountry.length) {
+    var maxCount = d.byCountry[0][1];
+    html += '<div class="section-title">Visitors by Country <span class="count">(' + d.byCountry.length + ')</span></div>';
+    html += '<div style="background:var(--bg-card);border:1px solid var(--border);padding:14px;margin-bottom:20px;">';
+    d.byCountry.forEach(function(c) {
+      var pct = Math.round((c[1] / maxCount) * 100);
+      html += '<div class="country-bar"><span class="c-name">' + c[0] + '</span><div class="bar" style="width:' + pct + 'px"></div><span class="c-count">' + c[1] + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  if (d.recentVisits && d.recentVisits.length) {
+    html += '<div class="section-title">Recent Visits <span class="count">(last 50)</span></div>';
+    html += '<div class="table-wrap"><table><thead><tr><th>Time</th><th>IP</th><th>Page</th><th>Referrer</th></tr></thead><tbody>';
+    d.recentVisits.slice(0, 20).forEach(function(v) {
+      var t = v.ts ? v.ts.slice(11, 19) : '';
+      html += '<tr><td class="ip">' + t + '</td><td class="ip">' + (v.ip || '').slice(0,20) + '</td><td>' + v.path + '</td><td><span class="dim">' + (v.ref ? v.ref.slice(0,40) : '-') + '</span></td></tr>';
+    });
+    html += '</tbody></table></div>';
+  } else {
+    html += '<div class="empty">No visits recorded yet.</div>';
+  }
+
+  document.getElementById('tabContent').innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderVisitors(d) {
+  document.getElementById('statsRow').innerHTML = '';
+  var html = '<div class="section-title">All Visitors <span class="count">(' + d.stats.totalVisits + ' total, ' + d.stats.uniqueVisitors + ' unique)</span></div>';
+
+  if (d.byCountry && d.byCountry.length) {
+    var maxCount = d.byCountry[0][1];
+    html += '<div style="background:var(--bg-card);border:1px solid var(--border);padding:14px;margin-bottom:20px;">';
+    d.byCountry.forEach(function(c) {
+      var pct = Math.round((c[1] / maxCount) * 100);
+      html += '<div class="country-bar"><span class="c-name">' + c[0] + '</span><div class="bar" style="width:' + pct + 'px"></div><span class="c-count">' + c[1] + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  var all = d.recentVisits ? d.recentVisits.slice() : [];
+  all.reverse();
+  html += '<div class="table-wrap"><table><thead><tr><th>Time</th><th>IP</th><th>Path</th><th>User-Agent</th><th>Referrer</th></tr></thead><tbody>';
+  (d.recentVisits || []).forEach(function(v) {
+    html += '<tr><td class="ip">' + (v.ts ? v.ts.slice(11,19) : '') + '</td><td class="ip">' + (v.ip || '').slice(0,20) + '</td><td>' + v.path + '</td><td><span class="dim">' + (v.ua ? v.ua.slice(0,60) : '-') + '</span></td><td><span class="dim">' + (v.ref ? v.ref.slice(0,30) : '-') + '</span></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('tabContent').innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderRequests(d) {
+  document.getElementById('statsRow').innerHTML = '';
+  var reqs = d.recentRequests || [];
+  var html = '<div class="section-title">Service Requests <span class="count">(' + d.stats.totalRequests + ' total, ' + d.stats.requestsToday + ' today)</span></div>';
+  if (reqs.length === 0) {
+    html += '<div class="empty">No requests yet.</div>';
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Date</th><th>Name</th><th>Email</th><th>Service</th><th>Package</th><th>Phone</th><th>Invoice</th></tr></thead><tbody>';
+    reqs.forEach(function(r) {
+      var dt = r.ts ? r.ts.slice(0,10) + ' ' + r.ts.slice(11,16) : '-';
+      html += '<tr><td class="ip">' + dt + '</td><td>' + (r.fullName || '-') + '</td><td class="ip">' + (r.email || '-') + '</td><td>' + (r.service || '-') + '</td><td>' + (r.complexity || '-') + '</td><td class="ip">' + (r.phone || '-') + '</td><td class="ip">' + (r.invoiceNumber ? '<a href="' + (r.invoiceUrl || '#') + '" target="_blank" style="color:var(--orange);text-decoration:underline;">' + r.invoiceNumber + '</a>' : '-') + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  document.getElementById('tabContent').innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderHealth() {
+  document.getElementById('statsRow').innerHTML = '';
+  var h = window._health;
+  if (!h) { document.getElementById('tabContent').innerHTML = '<div class="empty">Loading health data...</div>'; return; }
+  var html = '<div class="section-title">System Health</div><div class="health-grid">';
+  var services = [
+    { id: 'esperworks', name: 'EsperWorks API' },
+    { id: 'smtp', name: 'SMTP Email' },
+    { id: 'rates', name: 'Currency Rates' },
+    { id: 'server', name: 'Server' },
+  ];
+  services.forEach(function(svc) {
+    var info = h[svc.id] || {};
+    var ok = info.ok === true;
+    var statusText = ok ? 'Operational' : (info.message || info.error || 'Offline');
+    var cls = ok ? 'tag-ok' : (info.message === 'Not configured' ? 'tag-warn' : 'tag-err');
+    html += '<div class="health-card"><div class="h-name">' + svc.name + '</div><div class="h-status"><span class="tag ' + cls + '">' + statusText + '</span></div>';
+    if (svc.id === 'server') html += '<div style="font-size:10px;margin-top:6px;color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;">uptime: ' + Math.floor((info.uptime || 0) / 3600) + 'h ' + Math.floor(((info.uptime || 0) % 3600) / 60) + 'm' + '</div>';
+    if (svc.id === 'esperworks' && info.status) html += '<div style="font-size:10px;margin-top:4px;color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;">status: ' + info.status + '</div>';
+    if (svc.id === 'smtp' && info.host) html += '<div style="font-size:10px;margin-top:4px;color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;">host: ' + info.host + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="section-title" style="margin-top:16px;">Configuration</div><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Status</th></tr></thead><tbody>';
+  var configs = [
+    ['ESPERWORKS_API_KEY', h.esperworks ? (h.esperworks.ok ? 'Configured' : 'Error') : 'Not set'],
+    ['SMTP', h.smtp ? (h.smtp.ok ? 'Configured' : 'Not set') : 'Not set'],
+    ['ADMIN_PASSWORD', 'Set'],
+    ['CORS Origins', 'Configured'],
+    ['Rate Limit', '100 req/15min'],
+    ['Currencies', (h.rates ? h.rates.currencies : 0) + ' African currencies'],
+    ['Memory', h.server ? Math.round((h.server.memory || 0) / 1048576) + ' MB RSS' : '-'],
+  ];
+  configs.forEach(function(c) { html += '<tr><td class="ip">' + c[0] + '</td><td>' + c[1] + '</td></tr>'; });
+  html += '</tbody></table></div>';
+
+  document.getElementById('tabContent').innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// Auto-refresh every 15 seconds
+setInterval(function() { if (TOKEN) loadData(); }, 15000);
+if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+</body>
+</html>

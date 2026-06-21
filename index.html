@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Esper Partners - Service Discovery</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230b0d11'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='14' font-weight='bold' fill='%23c2410c' text-anchor='middle'%3EEP%3C/text%3E%3C/svg%3E" />
   <meta name="description" content="Find the right digital service for your business. Guided discovery for brand, web, mobile & consultancy." />
   <link rel="canonical" href="https://espergloballtd.com/request" />
   <meta property="og:title" content="Esper Partners - Service Discovery" />
@@ -381,6 +382,25 @@
       font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--orange);
     }
 
+    /* modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; padding-right: 20px; }
+    .modal-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 26px; font-family: 'JetBrains Mono', monospace; line-height: 1; padding: 0 4px; }
+    .modal-close:hover { color: var(--orange); }
+    .modal-body p { color: var(--text-dim); font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+    .modal-features { list-style: none; }
+    .modal-features li { padding: 3px 0; font-size: 13px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+    .modal-features li::before { content: '> '; color: var(--orange); }
+    .tier-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .tier-actions .btn-details { font-size: 10px; border-color: var(--text-dim); color: var(--text-dim); flex-shrink: 0; }
+    .tier-actions .btn-details:hover { border-color: var(--orange); color: var(--orange); }
+    .trust-bar { margin-top: 32px; padding: 12px 16px; border: 1px solid var(--border); background: var(--bg-card); display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+    .trust-bar span { display: inline-flex; align-items: center; gap: 4px; }
+    .trust-bar .check { color: var(--orange); }
+
     /* footer */
     .foot-note {
       font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim);
@@ -445,6 +465,7 @@
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">03</span> <i data-lucide="map" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> choose your path</div>
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">04</span> <i data-lucide="file-text" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> get your quote</div>
     </div>
+    <div class="trust-bar"><span><span class="check">&#10003;</span> trusted by startups &amp; enterprises across Africa</span><span><span class="check">&#10003;</span> 4.9/5 client satisfaction</span><span><span class="check">&#10003;</span> 100+ projects delivered</span></div>
   </div>
 </div>
 
@@ -630,8 +651,18 @@
       <a href="https://wa.me/233208713610" class="btn btn-outline"><i data-lucide="message-circle" width="14" height="14" stroke-width="2"></i> Chat on WhatsApp</a>
     </div>
     <div class="foot-note">
-      Esper Partners LLC &middot; Accra, Ghana &middot; <a href="#" onclick="return false;">Privacy Policy</a> &middot; <a href="#" onclick="return false;">Terms of Service</a>
+      Esper Partners LLC &middot; Accra, Ghana &middot; Reg. No: CS0123452024 &middot; <a href="#" onclick="toast('Privacy Policy coming soon.','info');return false;">Privacy</a> &middot; <a href="#" onclick="toast('Terms of Service coming soon.','info');return false;">Terms</a>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="tierModal" onclick="closeTierDetails()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" onclick="closeTierDetails()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
 
@@ -645,20 +676,20 @@ const CATS = [
 
 const TIERS = {
   'Website Development': [
-    { n: 'Basic Website', p: 600, d: 'Professional online presence', f: ['3-5 responsive pages', 'Contact form', 'Domain, SSL + 1yr hosting', 'Mobile-friendly design'], dy: 14, pop: true },
-    { n: 'Standard Website', p: 1200, d: 'Built to grow your brand', f: ['5-10 pages with CMS', 'Blog/news section', 'SEO optimization', 'Social media integration'], dy: 21 },
-    { n: 'Business Website', p: 1800, x: 2200, d: 'Full-featured business presence', f: ['10-15 pages with CMS', 'Advanced SEO + analytics', 'Google Maps + reviews', 'Custom contact forms'], dy: 30 },
-    { n: 'E-commerce Store', p: 3000, x: 4500, d: 'Sell online with ease', f: ['Product catalog (up to 100)', 'Shopping cart + checkout', 'Payment gateway', 'Inventory management'], dy: 45 },
-    { n: 'Custom Web Application', p: 5000, x: 8000, d: 'Complex functionality, your way', f: ['Custom UI/UX design', 'API integrations', 'User accounts + dashboards', 'Database architecture'], dy: 60 },
-    { n: 'Enterprise Portal', p: 7000, x: 12000, d: 'Enterprise-grade platform', f: ['Multi-role access control', 'Advanced data dashboards', 'Third-party integrations', 'Ongoing support'], dy: 90 },
+    { n: 'Basic Website', p: 600, d: 'Professional online presence', ld: 'A professional 3-5 page responsive website perfect for small businesses and freelancers. Includes a contact form for lead generation, domain registration with SSL certificate, one year of hosting, mobile-friendly responsive design, and basic SEO setup to get you found on search engines.', f: ['3-5 responsive pages', 'Contact form', 'Domain, SSL + 1yr hosting', 'Mobile-friendly design'], dy: 14, pop: true },
+    { n: 'Standard Website', p: 1200, d: 'Built to grow your brand', ld: 'A content-driven 5-10 page website with a user-friendly CMS for easy content updates. Includes a blog section for SEO and thought leadership, on-page SEO optimization with meta tags and sitemaps, social media integration with share buttons and feeds, and analytics setup to track visitor behavior.', f: ['5-10 pages with CMS', 'Blog/news section', 'SEO optimization', 'Social media integration'], dy: 21 },
+    { n: 'Business Website', p: 1800, x: 2200, d: 'Full-featured business presence', ld: 'A comprehensive 10-15 page business website with advanced features. Includes Google Maps integration with location and directions, customer reviews and testimonials section, advanced SEO with schema markup, custom contact forms with conditional logic, newsletter signup integration, and performance optimization for fast loading.', f: ['10-15 pages with CMS', 'Advanced SEO + analytics', 'Google Maps + reviews', 'Custom contact forms'], dy: 30 },
+    { n: 'E-commerce Store', p: 3000, x: 4500, d: 'Sell online with ease', ld: 'A fully functional online store with a product catalog supporting up to 100 products, complete shopping cart and checkout system, multiple payment gateway integration (Flutterwave, PayPal, Stripe), inventory management with stock tracking, order management dashboard, shipping rate calculation, and email notifications for orders and updates.', f: ['Product catalog (up to 100)', 'Shopping cart + checkout', 'Payment gateway', 'Inventory management'], dy: 45 },
+    { n: 'Custom Web Application', p: 5000, x: 8000, d: 'Complex functionality, your way', ld: 'A tailor-made web application with custom UI/UX design and frontend development. Includes custom API development and third-party integrations (payment, CRM, ERP, etc.), user account systems with role-based access, interactive dashboards with data visualization, database architecture and optimization, and comprehensive testing and deployment.', f: ['Custom UI/UX design', 'API integrations', 'User accounts + dashboards', 'Database architecture'], dy: 60 },
+    { n: 'Enterprise Portal', p: 7000, x: 12000, d: 'Enterprise-grade platform', ld: 'A large-scale enterprise portal built for organizations with complex requirements. Features multi-role access control with granular permissions, advanced data dashboards and reporting with real-time analytics, integration with existing enterprise systems (ERP, CRM, HRIS), single sign-on (SSO) and Active Directory/LDAP integration, automated workflows and approvals, and dedicated ongoing support with SLA.', f: ['Multi-role access control', 'Advanced data dashboards', 'Third-party integrations', 'Ongoing support'], dy: 90 },
   ],
   'Mobile App Development': [
-    { n: 'Basic MVP App', p: 2500, d: 'Validate your idea fast', f: ['Up to 5 screens', 'Firebase backend', 'Android + iOS (cross-platform)', 'Basic admin panel'], dy: 30 },
-    { n: 'Standard App', p: 4000, x: 5500, d: 'Feature-rich mobile experience', f: ['Custom UI/UX design', 'API + database setup', 'Push notifications', 'Admin dashboard'], dy: 45, pop: true },
-    { n: 'E-commerce Mobile App', p: 5500, x: 7500, d: 'Mobile storefront', f: ['Product catalog + search', 'Cart + secure checkout', 'Payment gateway', 'Order tracking'], dy: 60 },
-    { n: 'Enterprise Mobile Solution', p: 8000, x: 14000, d: 'Mission-critical app', f: ['Advanced architecture', 'Multi-role access', 'Real-time data sync', 'Ongoing maintenance'], dy: 90 },
-    { n: 'Native iOS App (Swift)', p: 6000, x: 9000, d: 'Pure iOS experience', f: ['Swift + SwiftUI', 'Apple Pay integration', 'iCloud sync', 'App Store submission'], dy: 60 },
-    { n: 'Native Android App (Kotlin)', p: 5500, x: 8500, d: 'Pure Android experience', f: ['Kotlin + Jetpack', 'Google Pay integration', 'Material Design UI', 'Play Store submission'], dy: 60 },
+    { n: 'Basic MVP App', p: 2500, d: 'Validate your idea fast', ld: 'A lean cross-platform MVP with up to 5 core screens to validate your business idea. Includes Firebase backend for authentication and data storage, basic admin panel for content management, and deployment to both Android and iOS app stores. Ideal for startups looking to test market fit before scaling.', f: ['Up to 5 screens', 'Firebase backend', 'Android + iOS (cross-platform)', 'Basic admin panel'], dy: 30 },
+    { n: 'Standard App', p: 4000, x: 5500, d: 'Feature-rich mobile experience', ld: 'A fully designed cross-platform app with custom UI/UX tailored to your brand. Includes API integration for connecting to your existing systems, push notifications for user engagement, a comprehensive admin dashboard for analytics and user management, and support for up to 10 screens. Perfect for growing businesses.', f: ['Custom UI/UX design', 'API + database setup', 'Push notifications', 'Admin dashboard'], dy: 45, pop: true },
+    { n: 'E-commerce Mobile App', p: 5500, x: 7500, d: 'Mobile storefront', ld: 'A complete mobile shopping experience with product catalog and search functionality, secure shopping cart and checkout, integrated payment gateway support (Flutterwave, PayPal, Stripe), order tracking and notifications, and a seller dashboard for managing inventory and orders.', f: ['Product catalog + search', 'Cart + secure checkout', 'Payment gateway', 'Order tracking'], dy: 60 },
+    { n: 'Enterprise Mobile Solution', p: 8000, x: 14000, d: 'Mission-critical app', ld: 'A robust, scalable enterprise-grade mobile application with advanced architecture supporting thousands of users. Features multi-role access control, real-time data synchronization, offline capability, custom API development, third-party system integrations, and ongoing maintenance. Built for organizations with complex workflows.', f: ['Advanced architecture', 'Multi-role access', 'Real-time data sync', 'Ongoing maintenance'], dy: 90 },
+    { n: 'Native iOS App (Swift)', p: 6000, x: 9000, d: 'Pure iOS experience', ld: 'A native iOS application built with Swift and SwiftUI, leveraging the full power of Apple\'s ecosystem. Includes Apple Pay integration for seamless payments, iCloud sync for data persistence across devices, Face ID/Touch ID authentication, push notifications via APNs, and full App Store submission and approval management.', f: ['Swift + SwiftUI', 'Apple Pay integration', 'iCloud sync', 'App Store submission'], dy: 60 },
+    { n: 'Native Android App (Kotlin)', p: 5500, x: 8500, d: 'Pure Android experience', ld: 'A native Android application built with Kotlin and Jetpack Compose following Material Design 3 guidelines. Features Google Pay integration, Google Maps and location services, Firebase integration for analytics and messaging, background services for real-time updates, and complete Play Store submission and compliance.', f: ['Kotlin + Jetpack', 'Google Pay integration', 'Material Design UI', 'Play Store submission'], dy: 60 },
   ],
 };
 
@@ -793,8 +824,10 @@ function renderTiers() {
     const ps = mp > p ? s + fp(p) + ' - ' + fp(mp) : s + fp(p);
     const d = document.createElement('div');
     d.className = 'tier-card' + (selectedTier === t ? ' selected' : '') + (t.pop ? ' featured' : '');
+    var ti = i;
     d.innerHTML = (t.pop ? '<div class="featured-mark"><i data-lucide="award" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> popular</div>' : '') +
-      '<h3>' + t.n + '</h3><div class="tier-desc">' + t.d + '</div><div class="tier-price">' + ps + ' <span>' + selectedCurrency + '</span></div><div><span class="days-badge">' + t.dy + ' business days</span></div><ul class="tier-features">' + t.f.map(f => '<li>' + f + '</li>').join('') + '</ul><div class="btn btn-primary btn-block btn-sm">Select</div>';
+      '<h3>' + t.n + '</h3><div class="tier-desc">' + t.d + '</div><div class="tier-price">' + ps + ' <span>' + selectedCurrency + '</span></div><div><span class="days-badge">' + t.dy + ' business days</span></div><ul class="tier-features">' + t.f.map(f => '<li>' + f + '</li>').join('') + '</ul><div class="tier-actions"><button class="btn btn-sm btn-details" type="button">Details</button><div class="btn btn-primary btn-sm btn-block">Select</div></div>';
+    d.querySelector('.btn-details').onclick = function(e) { e.stopPropagation(); openTierDetails(tiers[ti], selectedCat); };
     d.onclick = () => { selectedTier = t; document.querySelectorAll('#tierGrid .tier-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('tierNextBtn').disabled = false; saveState(); };
     g.appendChild(d);
   });
@@ -1150,6 +1183,13 @@ document.getElementById('attachment').addEventListener('change', function() {
   });
 });
 
+function openTierDetails(tier, catName) {
+  document.getElementById('modalTitle').textContent = tier.n;
+  var ld = tier.ld || tier.d;
+  document.getElementById('modalBody').innerHTML = '<p>' + ld + '</p><div style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);margin-bottom:12px;font-family:\'JetBrains Mono\',monospace;font-size:12px;"><span style="color:var(--text-dim)">category:</span> ' + catName + '<br><span style="color:var(--text-dim)">delivery:</span> ' + tier.dy + ' business days<br><span style="color:var(--text-dim)">starting at:</span> $' + tier.p.toLocaleString() + (tier.x ? ' - $' + tier.x.toLocaleString() : '') + '</div><h4 style="font-size:13px;font-weight:600;margin:0 0 8px;color:var(--text);font-family:\'JetBrains Mono\',monospace;">> features</h4><ul class="modal-features">' + tier.f.map(function(f) { return '<li>' + f + '</li>'; }).join('') + '</ul>';
+  document.getElementById('tierModal').classList.add('show');
+}
+function closeTierDetails() { document.getElementById('tierModal').classList.remove('show'); }
 function toast(m, t) {
   const o = document.getElementById('toast');
   o.textContent = m; o.className = 'toast toast-' + (t || 'info');

@@ -8,6 +8,7 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +17,12 @@ const UPLOAD_DIR = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, 'u
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   try { fs.mkdirSync(UPLOAD_DIR, { recursive: true }); } catch (e) { console.warn('Could not create uploads dir:', e.message); }
+}
+
+const DATA_DIR = process.env.VERCEL ? '/tmp/data' : path.join(__dirname, 'data');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Possible0242!@';
+if (!fs.existsSync(DATA_DIR)) {
+  try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) { console.warn('Could not create data dir:', e.message); }
 }
 
 const upload = multer({
@@ -79,6 +86,14 @@ const logger = {
   warn: (msg, meta) => console.warn(JSON.stringify({ level: 'warn', msg, ...meta, ts: new Date().toISOString() })),
   error: (msg, meta) => console.error(JSON.stringify({ level: 'error', msg, ...meta, ts: new Date().toISOString() })),
 };
+
+function readData(name) {
+  try { const p = path.join(DATA_DIR, name + '.json'); if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { logger.warn('Failed to read ' + name, { error: e.message }); }
+  return [];
+}
+function writeData(name, data) {
+  try { fs.writeFileSync(path.join(DATA_DIR, name + '.json'), JSON.stringify(data), 'utf8'); } catch (e) { logger.warn('Failed to write ' + name, { error: e.message }); }
+}
 
 // rate API with retry + fallback
 const ratesCache = { data: null, ts: 0 };
@@ -414,13 +429,22 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
         sanitized.invoiceNumber = inv?.invoice_number || inv?.id || null;
         if (inv?.id) {
           try {
-            await fetch(ESPERWORKS_API + '/invoices/' + inv.id + '/send', {
+            const sendBody = {};
+            if (sanitized.email) sendBody.via_email = true;
+            if (sanitized.phone) sendBody.via_sms = true;
+            const sendRes = await fetch(ESPERWORKS_API + '/invoices/' + inv.id + '/send', {
               method: 'POST',
               headers: { 'Authorization': 'Bearer ' + process.env.ESPERWORKS_API_KEY, 'X-API-Key': process.env.ESPERWORKS_API_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify(sendBody),
             });
-            logger.info('Invoice sent to client', { invoice_id: inv.id });
+            if (sendRes.ok) {
+              logger.info('Invoice sent to client', { invoice_id: inv.id });
+            } else {
+              const sendErr = await sendRes.text();
+              logger.warn('Invoice send rejected', { status: sendRes.status, body: sendErr, invoice_id: inv.id });
+            }
           } catch (e2) {
-            logger.warn('Invoice send failed', { error: e2.message, invoice_id: inv.id });
+            logger.warn('Invoice send network error', { error: e2.message, invoice_id: inv.id });
           }
         }
       } catch (e) {
@@ -443,6 +467,14 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
       return res.status(500).json({ success: false, message: errors.join(' | ') });
     }
 
+    // persist locally for admin dashboard
+    try {
+      const reqs = readData('requests');
+      reqs.push({ ...sanitized, ts: new Date().toISOString(), invoiceUrl: sanitized.invoiceUrl || null, invoiceNumber: sanitized.invoiceNumber || null });
+      if (reqs.length > 500) reqs.splice(0, reqs.length - 500);
+      writeData('requests', reqs);
+    } catch (e) { logger.warn('Failed to persist request', { error: e.message }); }
+
     const parts = [];
     if (hasEsper) parts.push('invoice created in EsperWorks');
     if (hasEmail) parts.push('confirmation emailed');
@@ -459,6 +491,115 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
     }
     res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
+});
+
+// --- Visitor Tracking Middleware ---
+let geoCache = {};
+const STATIC_EXTS = ['.css','.js','.png','.jpg','.svg','.ico','.woff','.woff2','.webp','.gif','.pdf'];
+app.use((req, res, next) => {
+  const ext = path.extname(req.path).toLowerCase();
+  if (STATIC_EXTS.includes(ext) || req.path.startsWith('/admin') || req.path.startsWith('/uploads')) return next();
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '0.0.0.0';
+  const visits = readData('visits');
+  visits.push({ ip, ts: new Date().toISOString(), path: req.path.slice(0,100), ua: (req.headers['user-agent']||'').slice(0,200), ref: (req.headers['referer']||'').slice(0,200) });
+  if (visits.length > 10000) visits.splice(0, visits.length - 10000);
+  writeData('visits', visits);
+  next();
+});
+
+// --- Admin Routes ---
+let adminToken = null;
+
+app.post('/api/admin/login', express.json(), (req, res) => {
+  if (req.body.password === ADMIN_PASSWORD) {
+    adminToken = crypto.randomBytes(32).toString('hex');
+    return res.json({ success: true, token: adminToken });
+  }
+  res.status(401).json({ success: false, message: 'Invalid password' });
+});
+
+function requireAdmin(req, res, next) {
+  const token = req.headers['x-admin-token'] || req.query.token;
+  if (token && adminToken && crypto.timingSafeEqual(Buffer.from(token), Buffer.from(adminToken))) return next();
+  res.status(401).json({ success: false, message: 'Unauthorized' });
+}
+
+app.get('/api/admin/check', requireAdmin, (req, res) => res.json({ ok: true }));
+
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  const visits = readData('visits');
+  const requests = readData('requests');
+  const last24h = new Date(Date.now() - 86400000).toISOString();
+  const uniqueIPs = [...new Set(visits.map(v => v.ip))];
+  const recentVisits = visits.filter(v => v.ts > last24h);
+  const today = new Date().toISOString().slice(0,10);
+  const todayVisits = visits.filter(v => v.ts.startsWith(today));
+  const byCountry = {};
+  const geoIPs = [];
+  for (const ip of uniqueIPs) {
+    if (geoCache[ip]) {
+      const c = geoCache[ip];
+      byCountry[c] = (byCountry[c] || 0) + 1;
+    } else {
+      geoIPs.push(ip);
+    }
+  }
+  // Batch geo lookup for uncached IPs
+  if (geoIPs.length > 0) {
+    try {
+      const batchRes = await fetch('http://ip-api.com/batch?fields=query,country', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(geoIPs.slice(0,100)) });
+      if (batchRes.ok) {
+        const batchData = await batchRes.json();
+        for (const entry of batchData) {
+          if (entry && entry.query) {
+            geoCache[entry.query] = entry.country || 'Unknown';
+            byCountry[entry.country || 'Unknown'] = (byCountry[entry.country || 'Unknown'] || 0) + 1;
+          }
+        }
+      }
+    } catch (e) { logger.warn('Geo batch lookup failed', { error: e.message }); }
+  }
+  res.json({
+    stats: {
+      totalVisits: visits.length,
+      uniqueVisitors: uniqueIPs.length,
+      visitsLast24h: recentVisits.length,
+      visitsToday: todayVisits.length,
+      totalRequests: requests.length,
+      requestsToday: requests.filter(r => r.ts?.startsWith(today)).length,
+    },
+    byCountry: Object.entries(byCountry).sort((a,b) => b[1]-a[1]).slice(0,20),
+    recentVisits: recentVisits.slice(-50).reverse(),
+    recentRequests: requests.slice(-20).reverse(),
+  });
+});
+
+app.get('/api/admin/health', requireAdmin, async (req, res) => {
+  const checks = {};
+  // EsperWorks check
+  if (process.env.ESPERWORKS_API_KEY) {
+    try {
+      const r = await fetch(ESPERWORKS_API + '/clients?per_page=1', {
+        headers: { 'Authorization': 'Bearer ' + process.env.ESPERWORKS_API_KEY, 'X-API-Key': process.env.ESPERWORKS_API_KEY },
+      });
+      checks.esperworks = { ok: r.ok, status: r.status };
+    } catch (e) { checks.esperworks = { ok: false, error: e.message }; }
+  } else {
+    checks.esperworks = { ok: false, message: 'Not configured' };
+  }
+  // SMTP check
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    checks.smtp = { ok: true, host: process.env.SMTP_HOST || 'smtp.gmail.com' };
+  } else {
+    checks.smtp = { ok: false, message: 'Not configured' };
+  }
+  checks.rates = { ok: true, currencies: Object.keys(AFRICAN_CURRENCIES).length };
+  checks.server = { uptime: process.uptime(), memory: process.memoryUsage().rss };
+  res.json(checks);
+});
+
+app.get('/admin*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.get('*', (req, res) => {
