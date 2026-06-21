@@ -361,8 +361,8 @@
 <div class="view" id="step4">
   <div class="container">
     <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ <span style="color:var(--cyan)">book a discovery call</span></div>
-    <h1 class="heading">Let's talk it through.</h1>
-    <p class="sub">Pick a time for a free 30-minute discovery call. It syncs directly to our Google Calendar.</p>
+    <h1 class="heading" id="step4Heading">Let's talk it through.</h1>
+    <p class="sub" id="step4Sub">Pick a time for a free 30-minute discovery call. It syncs directly to our Google Calendar.</p>
     <div class="form-card" id="schedulerCard">
       <div id="calendlyContainer" style="display:none;min-height:500px;"></div>
       <div id="manualScheduler" style="display:none;">
@@ -382,7 +382,7 @@
         <p style="margin-top:10px;font-weight:600;font-size:15px;">Discovery call booked!</p>
         <p style="color:var(--text-dim);font-size:13px;margin-top:4px;" id="calendlyEventInfo"></p>
       </div>
-      <div style="margin-top:12px;padding:8px 12px;border:1px solid var(--cyan);color:var(--cyan);font-size:12px;font-family:'JetBrains Mono',monospace;">
+      <div id="step4Info" style="margin-top:12px;padding:8px 12px;border:1px solid var(--cyan);color:var(--cyan);font-size:12px;font-family:'JetBrains Mono',monospace;">
         <i data-lucide="video" width="14" height="14" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong> link will be sent to your email after booking.
       </div>
     </div>
@@ -643,20 +643,35 @@ function initScheduler() {
 function showCalendly() {
   document.getElementById('manualScheduler').style.display = 'none';
   document.getElementById('calendlyConfirm').style.display = 'none';
+  document.getElementById('step4Heading').style.display = 'none';
+  document.getElementById('step4Sub').style.display = 'none';
+  document.getElementById('step4Info').style.display = 'none';
   const container = document.getElementById('calendlyContainer');
   container.style.display = 'block';
   if (!container.querySelector('.calendly-inline-widget')) {
     container.innerHTML = '<div class="calendly-inline-widget" data-url="' + CALENDLY_URL + '?hide_gdpr_banner=1" style="min-width:320px;height:580px;"></div>';
-    if (window.Calendly && Calendly.initInlineWidgets) {
-      Calendly.initInlineWidgets();
-    } else if (!window._calendlyLoading) {
+    if (!window._calendlyLoading) {
       window._calendlyLoading = true;
       var s = document.createElement('script');
       s.src = 'https://assets.calendly.com/assets/external/widget.js';
       s.async = true;
-      s.onload = function() { if (window.Calendly) Calendly.initInlineWidgets(); };
       document.head.appendChild(s);
     }
+  }
+  if (!window._calendlyInitTimer) {
+    window._calendlyInitTimer = setInterval(function() {
+      if (window.Calendly && typeof Calendly.initInlineWidgets === 'function') {
+        Calendly.initInlineWidgets();
+        clearInterval(window._calendlyInitTimer);
+        window._calendlyInitTimer = null;
+      }
+    }, 200);
+    setTimeout(function() {
+      if (window._calendlyInitTimer) {
+        clearInterval(window._calendlyInitTimer);
+        window._calendlyInitTimer = null;
+      }
+    }, 15000);
   }
 
   if (!window._calendlyListener) {
@@ -682,6 +697,9 @@ function showCalendly() {
 function showManualScheduler() {
   document.getElementById('calendlyContainer').style.display = 'none';
   document.getElementById('calendlyConfirm').style.display = 'none';
+  document.getElementById('step4Heading').style.display = '';
+  document.getElementById('step4Sub').style.display = '';
+  document.getElementById('step4Info').style.display = '';
   document.getElementById('manualScheduler').style.display = 'block';
 
   const input = document.getElementById('meetingDate');
