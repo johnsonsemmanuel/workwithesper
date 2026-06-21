@@ -74,12 +74,12 @@ app.use(helmet({
     useDefaults: false,
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://assets.calendly.com"],
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://assets.calendly.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       imgSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'", "https://api.tryesperworks.com", "https://open.er-api.com", "https://api.exchangerate-api.com", "https://cdnjs.cloudflare.com"],
+      connectSrc: ["'self'", "https://api.tryesperworks.com", "https://open.er-api.com", "https://api.exchangerate-api.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://assets.calendly.com"],
       formAction: ["'self'"],
       baseUri: ["'self'"],
       objectSrc: ["'none'"],
@@ -473,35 +473,11 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
         sanitized.invoiceUrl = inv?.payment_url || (inv?.signing_token ? 'https://tryesperworks.com/invoices/pay/' + inv.signing_token : null);
         sanitized.invoiceNumber = inv?.invoice_number || inv?.id || null;
         if (inv?.id) {
-          // Mark as sent before triggering email
-          try {
-            await fetch(ESPERWORKS_API + '/invoices/' + inv.id, {
-              method: 'PATCH',
-              headers: { 'Authorization': 'Bearer ' + process.env.ESPERWORKS_API_KEY, 'X-API-Key': process.env.ESPERWORKS_API_KEY, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'sent' }),
-            });
-          } catch (e3) { logger.warn('Invoice status update failed', { error: e3.message, invoice_id: inv.id }); }
-
-          try {
-            const sendBody = {};
-            if (sanitized.email) sendBody.via_email = true;
-            if (sanitized.phone) sendBody.via_sms = true;
-            const sendRes = await fetch(ESPERWORKS_API + '/invoices/' + inv.id + '/send', {
-              method: 'POST',
-              headers: { 'Authorization': 'Bearer ' + process.env.ESPERWORKS_API_KEY, 'X-API-Key': process.env.ESPERWORKS_API_KEY, 'Content-Type': 'application/json' },
-              body: JSON.stringify(sendBody),
-            });
-            if (sendRes.ok) {
-              logger.info('Invoice sent to client', { invoice_id: inv.id, via_email: !!sanitized.email, via_sms: !!sanitized.phone });
-            } else {
-              const sendErr = await sendRes.text();
-              logger.warn('Invoice send rejected', { status: sendRes.status, body: sendErr, invoice_id: inv.id });
-              errors.push('Invoice send: ' + (sendRes.status === 422 ? 'Please check email/phone on the client' : sendErr.slice(0,100)));
-            }
-          } catch (e2) {
-            logger.warn('Invoice send network error', { error: e2.message, invoice_id: inv.id });
-            errors.push('Invoice send network error');
-          }
+          logger.info('Invoice created', { invoice_id: inv.id, number: inv.invoice_number, status: inv.status });
+          // Email is sent by EsperWorks internally when the invoice is created.
+          // The /send and /email API endpoints are not publicly exposed,
+          // so the invoice email must be triggered through the EsperWorks dashboard
+          // or via our own SMTP configuration below.
         }
       } catch (e) {
         errors.push('Invoice: ' + e.message);
