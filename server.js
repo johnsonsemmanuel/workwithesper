@@ -9,6 +9,7 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const fsp = require('fs/promises');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,13 +26,28 @@ if (!fs.existsSync(DATA_DIR)) {
   try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) { console.warn('Could not create data dir:', e.message); }
 }
 
+const MIME_MAP = {
+  'application/pdf': '.pdf',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'application/vnd.ms-powerpoint': '.ppt',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+  'application/vnd.ms-excel': '.xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+  'application/zip': '.zip',
+  'text/plain': '.txt',
+};
 const upload = multer({
   dest: UPLOAD_DIR,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.ppt', '.pptx', '.xls', '.xlsx', '.zip', '.txt'];
+    const allowedExts = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.ppt', '.pptx', '.xls', '.xlsx', '.zip', '.txt'];
     const ext = path.extname(file.originalname).toLowerCase();
-    if (!allowed.includes(ext)) return cb(new Error('File type not supported'), false);
+    const expectedMime = MIME_MAP[file.mimetype];
+    if (!allowedExts.includes(ext)) return cb(new Error('File extension not supported: ' + ext), false);
+    if (expectedMime && expectedMime !== ext) return cb(new Error('File extension does not match MIME type'), false);
     cb(null, true);
   },
 });
@@ -54,7 +70,18 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
 // security
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "https://api.tryesperworks.com", "https://open.er-api.com", "https://api.exchangerate-api.com"],
+      formAction: ["'self'"],
+      baseUri: ["'self'"],
+    },
+  },
 }));
 
 app.use(compression());
@@ -92,7 +119,7 @@ function readData(name) {
   return [];
 }
 function writeData(name, data) {
-  try { fs.writeFileSync(path.join(DATA_DIR, name + '.json'), JSON.stringify(data), 'utf8'); } catch (e) { logger.warn('Failed to write ' + name, { error: e.message }); }
+  fsp.writeFile(path.join(DATA_DIR, name + '.json'), JSON.stringify(data), 'utf8').catch(e => logger.warn('Failed to write ' + name, { error: e.message }));
 }
 
 // rate API with retry + fallback
@@ -143,34 +170,45 @@ async function fetchRatesWithRetry(url, retries = 2) {
   }
 }
 
+function loadRatesFile() {
+  try { const p = path.join(__dirname, 'rates.json'); if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) {}
+  return null;
+}
+function saveRatesFile(data) {
+  fsp.writeFile(path.join(__dirname, 'rates.json'), JSON.stringify({ ...data, ts: Date.now() }), 'utf8').catch(() => {});
+}
+
 async function getRates() {
   if (ratesCache.data && Date.now() - ratesCache.ts < 3600000) return ratesCache.data;
-  try {
-    const rates = await fetchRatesWithRetry(RATES_API);
+  const fromApi = async (url) => {
+    const rates = await fetchRatesWithRetry(url);
     const result = { USD: 1 };
     for (const code of Object.keys(AFRICAN_CURRENCIES)) {
       if (code !== 'USD' && rates[code]) result[code] = rates[code];
     }
-    ratesCache.data = { rates: result, currencies: AFRICAN_CURRENCIES, base: 'USD' };
-    ratesCache.ts = Date.now();
-    return ratesCache.data;
-  } catch (e) {
-    logger.warn('Primary rate API failed, trying fallback', { error: e.message });
+    return { rates: result, currencies: AFRICAN_CURRENCIES, base: 'USD' };
+  };
+  for (const url of [RATES_API, RATES_FALLBACK]) {
     try {
-      const rates = await fetchRatesWithRetry(RATES_FALLBACK);
-      const result = { USD: 1 };
-      for (const code of Object.keys(AFRICAN_CURRENCIES)) {
-        if (code !== 'USD' && rates[code]) result[code] = rates[code];
-      }
-      ratesCache.data = { rates: result, currencies: AFRICAN_CURRENCIES, base: 'USD' };
+      const data = await fromApi(url);
+      ratesCache.data = data;
       ratesCache.ts = Date.now();
-      return ratesCache.data;
-    } catch (e2) {
-      logger.error('All rate APIs failed', { error: e2.message });
-      if (ratesCache.data) return ratesCache.data;
-      throw e2;
+      saveRatesFile(data);
+      return data;
+    } catch (e) {
+      logger.warn('Rate API failed', { url, error: e.message });
     }
   }
+  // File fallback (last known good rates)
+  const file = loadRatesFile();
+  if (file && file.rates) {
+    logger.info('Using file fallback rates', { age: Date.now() - (file.ts || 0) });
+    ratesCache.data = file;
+    ratesCache.ts = Date.now();
+    return file;
+  }
+  if (ratesCache.data) return ratesCache.data;
+  throw new Error('All rate sources failed');
 }
 
 function sanitize(s) {
@@ -420,6 +458,9 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
     if (!sanitized.fullName || !sanitized.email || !sanitized.description) {
       return res.status(400).json({ success: false, message: 'Name, email, and description required.' });
     }
+    if (sanitized.price <= 0 || sanitized.price > 200000) {
+      return res.status(400).json({ success: false, message: 'Invalid price value.' });
+    }
 
     if (hasEsper) {
       try {
@@ -494,7 +535,16 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
 });
 
 // --- Visitor Tracking Middleware ---
-let geoCache = {};
+function loadGeoCache() {
+  try { const p = path.join(DATA_DIR, 'geo.json'); if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) {}
+  return {};
+}
+function saveGeoCache() {
+  fsp.writeFile(path.join(DATA_DIR, 'geo.json'), JSON.stringify(geoCache), 'utf8').catch(() => {});
+}
+let geoCache = loadGeoCache();
+let geoCacheDirty = false;
+setInterval(() => { if (geoCacheDirty) { geoCacheDirty = false; saveGeoCache(); } }, 60000);
 const STATIC_EXTS = ['.css','.js','.png','.jpg','.svg','.ico','.woff','.woff2','.webp','.gif','.pdf'];
 app.use((req, res, next) => {
   const ext = path.extname(req.path).toLowerCase();
@@ -508,19 +558,41 @@ app.use((req, res, next) => {
 });
 
 // --- Admin Routes ---
-let adminToken = null;
+const adminTokens = new Map();
+const ADMIN_TOKEN_TTL = 4 * 60 * 60 * 1000; // 4 hours
 
-app.post('/api/admin/login', express.json(), (req, res) => {
+// Clean expired tokens every 15 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, expiry] of adminTokens) {
+    if (now >= expiry) adminTokens.delete(token);
+  }
+}, 900000);
+
+const adminLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { success: false, message: 'Too many login attempts.' } });
+
+app.post('/api/admin/login', adminLoginLimiter, express.json(), (req, res) => {
   if (req.body.password === ADMIN_PASSWORD) {
-    adminToken = crypto.randomBytes(32).toString('hex');
-    return res.json({ success: true, token: adminToken });
+    const token = crypto.randomBytes(32).toString('hex');
+    adminTokens.set(token, Date.now() + ADMIN_TOKEN_TTL);
+    return res.json({ success: true, token });
   }
   res.status(401).json({ success: false, message: 'Invalid password' });
 });
 
+app.post('/api/admin/logout', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (token) adminTokens.delete(token);
+  res.json({ success: true });
+});
+
 function requireAdmin(req, res, next) {
-  const token = req.headers['x-admin-token'] || req.query.token;
-  if (token && adminToken && crypto.timingSafeEqual(Buffer.from(token), Buffer.from(adminToken))) return next();
+  const token = req.headers['x-admin-token'];
+  if (token && adminTokens.has(token)) {
+    const expiry = adminTokens.get(token);
+    if (Date.now() < expiry) return next();
+    adminTokens.delete(token);
+  }
   res.status(401).json({ success: false, message: 'Unauthorized' });
 }
 
@@ -553,6 +625,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
         for (const entry of batchData) {
           if (entry && entry.query) {
             geoCache[entry.query] = entry.country || 'Unknown';
+            geoCacheDirty = true;
             byCountry[entry.country || 'Unknown'] = (byCountry[entry.country || 'Unknown'] || 0) + 1;
           }
         }
@@ -572,6 +645,28 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     recentVisits: recentVisits.slice(-50).reverse(),
     recentRequests: requests.slice(-20).reverse(),
   });
+});
+
+app.get('/api/admin/export/:type', requireAdmin, (req, res) => {
+  const type = req.params.type;
+  if (type === 'visits') {
+    const visits = readData('visits');
+    const rows = [['IP', 'Timestamp', 'Path', 'User-Agent', 'Referer']];
+    for (const v of visits) rows.push([v.ip, v.ts, v.path, v.ua, v.ref]);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="visits.csv"');
+    res.send(rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n'));
+  } else if (type === 'requests') {
+    const reqs = readData('requests');
+    const keys = ['fullName','email','phone','company','service','category','complexity','price','currency','estimatedDays','description','meetingDate','meetingTime','ts','invoiceUrl','invoiceNumber'];
+    const rows = [keys.map(k => '"' + k + '"')];
+    for (const r of reqs) rows.push(keys.map(k => '"' + String(r[k] || '').replace(/"/g, '""') + '"').join(','));
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="requests.csv"');
+    res.send(rows.join('\n'));
+  } else {
+    res.status(400).json({ success: false, message: 'Unknown export type. Use "visits" or "requests".' });
+  }
 });
 
 app.get('/api/admin/health', requireAdmin, async (req, res) => {
@@ -595,7 +690,13 @@ app.get('/api/admin/health', requireAdmin, async (req, res) => {
   }
   checks.rates = { ok: true, currencies: Object.keys(AFRICAN_CURRENCIES).length };
   checks.server = { uptime: process.uptime(), memory: process.memoryUsage().rss };
+  checks.config = { corsOrigins: ALLOWED_ORIGINS, rateLimit: '100 req/15min', adminPasswordSet: !!process.env.ADMIN_PASSWORD };
   res.json(checks);
+});
+
+// 404 for unmatched API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ success: false, message: 'Not found' });
 });
 
 app.get('/admin*', (req, res) => {
@@ -618,5 +719,16 @@ if (!process.env.VERCEL) {
     }
   });
 }
+
+// Graceful shutdown
+function shutdown(signal) {
+  logger.info('Shutdown', { signal });
+  saveGeoCache();
+  const file = loadRatesFile();
+  if (ratesCache.data && (!file || !file.ts || Date.now() - file.ts > 300000)) saveRatesFile(ratesCache.data);
+  process.exit(0);
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 module.exports = app;

@@ -249,8 +249,11 @@
       opacity: 0; transition: all 0.3s; max-width: 440px; text-align: center;
     }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast-info { background: #0d1117; border-color: var(--text-dim); color: var(--text-dim); }
     .toast-success { background: #0d1117; border-color: var(--orange); color: var(--orange); }
     .toast-error { background: #0d1117; border-color: var(--red); color: var(--red); }
+    .opt-card:focus-visible, .tier-card:focus-visible, .path-card:focus-visible, .slot-btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+    .btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 
     @media (max-width: 768px) {
       .card-grid-2, .card-grid-3 { grid-template-columns: 1fr; }
@@ -494,7 +497,7 @@
       <i data-lucide="dollar-sign" width="14" height="14" stroke-width="2" style="color:var(--orange)"></i>
       <label style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">currency:</label>
       <select class="currency-select" style="padding:4px 24px 4px 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;">
-        <option value="USD">USD</option><option value="GHS">GHS</option><option value="NGN">NGN</option><option value="KES">KES</option><option value="ZAR">ZAR</option><option value="UGX">UGX</option><option value="TZS">TZS</option><option value="RWF">RWF</option><option value="XAF">XAF</option><option value="XOF">XOF</option><option value="EGP">EGP</option><option value="MAD">MAD</option><option value="ZMW">ZMW</option><option value="MZN">MZN</option><option value="ETB">ETB</option><option value="BWP">BWP</option>
+        <option value="USD">USD</option><option value="GHS">GHS</option><option value="NGN">NGN</option><option value="KES">KES</option><option value="ZAR">ZAR</option><option value="UGX">UGX</option><option value="TZS">TZS</option><option value="RWF">RWF</option><option value="XAF">XAF</option><option value="XOF">XOF</option><option value="EGP">EGP</option><option value="MAD">MAD</option><option value="ZMW">ZMW</option><option value="MZN">MZN</option><option value="ETB">ETB</option><option value="BWP">BWP</option><option value="GMD">GMD</option><option value="LSL">LSL</option><option value="MUR">MUR</option><option value="MWK">MWK</option><option value="SCR">SCR</option><option value="SLL">SLL</option><option value="SOS">SOS</option><option value="TND">TND</option>
       </select>
       <span style="font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;" id="rateInfoStep3"></span>
     </div>
@@ -514,13 +517,13 @@
     <h1 class="heading">How would you like to proceed?</h1>
     <p class="sub">Book a free discovery call to discuss your project, or skip to invoicing to get started right away.</p>
     <div class="card-grid card-grid-2" id="pathGrid">
-      <div class="path-card" id="pathCall" onclick="choosePath('call')">
+      <div class="path-card" id="pathCall" onclick="choosePath('call')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();choosePath('call');}">
         <div class="path-icon"><i data-lucide="calendar" width="32" height="32" stroke-width="1.5"></i></div>
         <h3>Book a Discovery Call</h3>
         <p>Schedule a free 30-minute call to discuss your project, get answers, and define scope before committing.</p>
         <div class="path-tag featured"><i data-lucide="award" width="12" height="12" stroke-width="1.5" style="vertical-align:middle;margin-right:2px"></i> recommended</div>
       </div>
-      <div class="path-card" id="pathInvoice" onclick="choosePath('invoice')">
+      <div class="path-card" id="pathInvoice" onclick="choosePath('invoice')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();choosePath('invoice');}">
         <div class="path-icon"><i data-lucide="file-text" width="32" height="32" stroke-width="1.5"></i></div>
         <h3>Get an Invoice</h3>
         <p>Skip the call and receive an invoice to commence the project. Provide your details and we will send your invoice right away.</p>
@@ -571,7 +574,7 @@
       <i data-lucide="dollar-sign" width="14" height="14" stroke-width="2" style="color:var(--orange)"></i>
       <label style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">currency:</label>
       <select class="currency-select" style="padding:4px 24px 4px 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;">
-        <option value="USD">USD</option><option value="GHS">GHS</option><option value="NGN">NGN</option><option value="KES">KES</option><option value="ZAR">ZAR</option><option value="UGX">UGX</option><option value="TZS">TZS</option><option value="RWF">RWF</option><option value="XAF">XAF</option><option value="XOF">XOF</option><option value="EGP">EGP</option><option value="MAD">MAD</option><option value="ZMW">ZMW</option><option value="MZN">MZN</option><option value="ETB">ETB</option><option value="BWP">BWP</option>
+        <option value="USD">USD</option><option value="GHS">GHS</option><option value="NGN">NGN</option><option value="KES">KES</option><option value="ZAR">ZAR</option><option value="UGX">UGX</option><option value="TZS">TZS</option><option value="RWF">RWF</option><option value="XAF">XAF</option><option value="XOF">XOF</option><option value="EGP">EGP</option><option value="MAD">MAD</option><option value="ZMW">ZMW</option><option value="MZN">MZN</option><option value="ETB">ETB</option><option value="BWP">BWP</option><option value="GMD">GMD</option><option value="LSL">LSL</option><option value="MUR">MUR</option><option value="MWK">MWK</option><option value="SCR">SCR</option><option value="SLL">SLL</option><option value="SOS">SOS</option><option value="TND">TND</option>
       </select>
       <span style="font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;" id="rateInfo"></span>
     </div>
@@ -589,29 +592,29 @@
         <form id="detailsForm" novalidate>
           <div class="form-row">
             <div class="form-group">
-              <label><span class="required">*</span> name</label>
-              <input type="text" class="form-control" id="fullName" required />
+              <label for="fullName"><span class="required">*</span> name</label>
+              <input type="text" class="form-control" id="fullName" required maxlength="100" />
               <div class="field-error" id="err-fullName">Required</div>
             </div>
             <div class="form-group">
-              <label><span class="required">*</span> email</label>
-              <input type="email" class="form-control" id="email" required />
+              <label for="email"><span class="required">*</span> email</label>
+              <input type="email" class="form-control" id="email" required maxlength="200" />
               <div class="field-error" id="err-email">Valid email required</div>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>phone</label>
-              <input type="tel" class="form-control" id="phone" />
+              <label for="phone">phone</label>
+              <input type="tel" class="form-control" id="phone" maxlength="30" />
             </div>
             <div class="form-group">
-              <label>company</label>
-              <input type="text" class="form-control" id="company" />
+              <label for="company">company</label>
+              <input type="text" class="form-control" id="company" maxlength="150" />
             </div>
           </div>
           <div class="form-group">
-            <label><span class="required">*</span> project details</label>
-            <textarea class="form-control" id="description" required placeholder="Tell us about your project, goals, timeline..."></textarea>
+            <label for="description"><span class="required">*</span> project details</label>
+            <textarea class="form-control" id="description" required placeholder="Tell us about your project, goals, timeline..." maxlength="3000"></textarea>
             <div class="field-error" id="err-description">Required</div>
           </div>
           <div class="form-group">
@@ -656,11 +659,11 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="tierModal" onclick="closeTierDetails()">
+<div class="modal-overlay" id="tierModal" onclick="closeTierDetails()" role="dialog" aria-modal="true" aria-labelledby="modalTitle" onkeydown="if(event.key==='Escape')closeTierDetails()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h3 id="modalTitle"></h3>
-      <button class="modal-close" onclick="closeTierDetails()">&times;</button>
+      <button class="modal-close" onclick="closeTierDetails()" aria-label="Close details">&times;</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
   </div>
@@ -695,7 +698,7 @@ const TIERS = {
 
 const TIME_SLOTS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
 
-const CURRENCIES = { USD: ['$', 'US Dollar'], GHS: ['GH¢', 'Ghanaian Cedi'], NGN: ['₦', 'Nigerian Naira'], KES: ['KSh', 'Kenyan Shilling'], ZAR: ['R', 'South African Rand'], UGX: ['USh', 'Ugandan Shilling'], TZS: ['TSh', 'Tanzanian Shilling'], RWF: ['FRw', 'Rwandan Franc'], XAF: ['FCFA', 'Central African CFA'], XOF: ['CFA', 'West African CFA'], EGP: ['E£', 'Egyptian Pound'], MAD: ['DH', 'Moroccan Dirham'], ZMW: ['ZK', 'Zambian Kwacha'], MZN: ['MT', 'Mozambican Metical'], ETB: ['Br', 'Ethiopian Birr'], BWP: ['P', 'Botswana Pula'] };
+const CURRENCIES = { USD: ['$', 'US Dollar'], GHS: ['GH¢', 'Ghanaian Cedi'], NGN: ['₦', 'Nigerian Naira'], KES: ['KSh', 'Kenyan Shilling'], ZAR: ['R', 'South African Rand'], UGX: ['USh', 'Ugandan Shilling'], TZS: ['TSh', 'Tanzanian Shilling'], RWF: ['FRw', 'Rwandan Franc'], XAF: ['FCFA', 'Central African CFA'], XOF: ['CFA', 'West African CFA'], EGP: ['E£', 'Egyptian Pound'], MAD: ['DH', 'Moroccan Dirham'], ZMW: ['ZK', 'Zambian Kwacha'], MZN: ['MT', 'Mozambican Metical'], ETB: ['Br', 'Ethiopian Birr'], BWP: ['P', 'Botswana Pula'], GMD: ['D', 'Gambian Dalasi'], LSL: ['L', 'Lesotho Loti'], MUR: ['Rs', 'Mauritian Rupee'], MWK: ['MK', 'Malawian Kwacha'], SCR: ['SR', 'Seychellois Rupee'], SLL: ['Le', 'Sierra Leonean Leone'], SOS: ['Sh', 'Somali Shilling'], TND: ['DT', 'Tunisian Dinar'] };
 
 const CALENDLY_URL = 'https://calendly.com/espergloballtd/30min'; // set to '' to use manual date/time picker
 const CONTACT_PERSON = { name: 'Emmanuel Johnson', email: 'emmanuel@espergloballtd.com', phone: '+233 20 871 3610', role: 'Project Manager' };
@@ -754,6 +757,7 @@ function saveState() {
   try { if (selectedTime) localStorage.setItem('esp_time', selectedTime); } catch(e) {}
   try { if (selectedPath) localStorage.setItem('esp_path', selectedPath); } catch(e) {}
   try { localStorage.setItem('esp_currency', selectedCurrency); } catch(e) {}
+  try { localStorage.setItem('esp_priority', priorityMode ? '1' : ''); } catch(e) {}
 }
 
 function animateCards(sel, delay) {
@@ -808,6 +812,7 @@ function renderCategories() {
     d.className = 'opt-card' + (selectedCat === c.id ? ' selected' : '');
     d.innerHTML = `<div class="icon"><i data-lucide="${c.icon}" width="26" height="26" stroke-width="1.5"></i></div><h3>${c.id}</h3><p>${c.desc}</p><div class="tag">${c.count} packages</div>`;
     d.onclick = () => { selectedCat = c.id; document.querySelectorAll('#categoryGrid .opt-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('catNextBtn').disabled = false; saveState(); };
+    d.tabIndex = 0; d.role = 'button'; d.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); d.onclick(); } };
     g.appendChild(d);
   });
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -823,12 +828,14 @@ function renderTiers() {
     const p = t.p, mp = t.x || t.p;
     const ps = mp > p ? s + fp(p) + ' - ' + fp(mp) : s + fp(p);
     const d = document.createElement('div');
-    d.className = 'tier-card' + (selectedTier === t ? ' selected' : '') + (t.pop ? ' featured' : '');
+    d.className = 'tier-card' + (selectedTier && selectedTier.n === t.n ? ' selected' : '') + (t.pop ? ' featured' : '');
     var ti = i;
     d.innerHTML = (t.pop ? '<div class="featured-mark"><i data-lucide="award" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> popular</div>' : '') +
       '<h3>' + t.n + '</h3><div class="tier-desc">' + t.d + '</div><div class="tier-price">' + ps + ' <span>' + selectedCurrency + '</span></div><div><span class="days-badge">' + t.dy + ' business days</span></div><ul class="tier-features">' + t.f.map(f => '<li>' + f + '</li>').join('') + '</ul><div class="tier-actions"><button class="btn btn-sm btn-details" type="button">Details</button><div class="btn btn-primary btn-sm btn-block">Select</div></div>';
     d.querySelector('.btn-details').onclick = function(e) { e.stopPropagation(); openTierDetails(tiers[ti], selectedCat); };
     d.onclick = () => { selectedTier = t; document.querySelectorAll('#tierGrid .tier-card').forEach(el => el.classList.remove('selected')); d.classList.add('selected'); document.getElementById('tierNextBtn').disabled = false; saveState(); };
+    d.tabIndex = 0; d.role = 'button'; d.setAttribute('aria-label', t.n);
+    d.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); d.onclick(); } };
     g.appendChild(d);
   });
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -996,42 +1003,57 @@ function downloadPDF() {
     var doc = new jsPDF({ unit: 'pt', format: 'a4' });
     var x = 40, y = 60, w = 515;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
+    doc.setFontSize(20);
+    doc.setTextColor(194, 65, 12);
     doc.text('Esper Partners', x, y);
     doc.setFontSize(9);
     doc.setTextColor(100);
-    doc.text('Service Quote', x, y + 16);
-    doc.setDrawColor(63, 185, 80);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Service Quote  |  ' + new Date().toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }), x, y + 16);
+    doc.setDrawColor(194, 65, 12);
     doc.setLineWidth(1);
     doc.line(x, y + 24, x + w, y + 24);
     y += 50;
     doc.setFontSize(11);
-    doc.setTextColor(0);
+    doc.setTextColor(30);
     doc.setFont('helvetica', 'normal');
     var lines = [
       ['Service', selectedCat],
       ['Package', t.n],
       ['Delivery', effDays + ' business days' + (priorityMode ? ' (priority)' : '')],
-      ['Price', '$' + effP.toLocaleString() + (effMP > effP ? ' - $' + effMP.toLocaleString() : '')],
+      ['Estimated Price', '$' + effP.toLocaleString() + (effMP > effP ? ' - $' + effMP.toLocaleString() : '')],
     ];
     lines.forEach(function(l) {
       doc.setFont('helvetica', 'bold');
       doc.text(l[0] + ':', x, y);
       doc.setFont('helvetica', 'normal');
-      doc.text(l[1], x + 100, y);
+      doc.text(l[1], x + 120, y);
       y += 20;
     });
-    y += 20;
+    y += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(194, 65, 12);
+    doc.text('Included Features:', x, y);
+    y += 16;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80);
+    (t.f || []).forEach(function(f) {
+      doc.text('> ' + f, x + 8, y);
+      y += 14;
+    });
+    y += 12;
     doc.setFontSize(9);
     doc.setTextColor(100);
     doc.text('50% deposit required to start. Work begins after payment.', x, y);
-    y += 16;
-    doc.text('Quote valid for 14 days. Pricing in USD.', x, y);
+    y += 14;
+    doc.text('Quote valid for 14 days. Pricing in USD. Subject to scope confirmation.', x, y);
     y += 40;
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text('Esper Partners LLC - Accra, Ghana - espergloballtd.com', x, y);
-    doc.text('Contact: ' + CONTACT_PERSON.name + ' - ' + CONTACT_PERSON.email + ' - ' + CONTACT_PERSON.phone, x, y + 12);
+    doc.text('Esper Partners LLC  |  Accra, Ghana  |  espergloballtd.com', x, y);
+    doc.text('Contact: ' + CONTACT_PERSON.name + '  |  ' + CONTACT_PERSON.email + '  |  ' + CONTACT_PERSON.phone, x, y + 12);
     doc.save('Esper-Partners-Quote.pdf');
   } catch(e) { toast('Could not generate PDF.', 'error'); }
 }
@@ -1164,7 +1186,7 @@ document.getElementById('detailsForm').addEventListener('submit', async function
       }
       if (typeof lucide !== 'undefined') lucide.createIcons();
       go(6);
-      try { localStorage.removeItem('espr_draft'); } catch(e) {}
+      try { localStorage.removeItem('esp_draft'); } catch(e) {}
     } else toast(d.message || 'Failed.', 'error');
   } catch(e) { toast('Network error.', 'error'); }
   finally { btn.classList.remove('loading'); btn.disabled = false; document.getElementById('formCard').classList.remove('shimmer'); }
@@ -1175,12 +1197,26 @@ document.getElementById('attachment').addEventListener('change', function() {
   if (this.files[0]) { w.classList.add('has-file'); n.textContent = this.files[0].name; }
   else { w.classList.remove('has-file'); n.textContent = ''; }
 });
+function validateField(id) {
+  var el = document.getElementById(id), err = document.getElementById('err-' + id);
+  if (!el || !err) return;
+  if (id === 'email') {
+    if (!el.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim())) { err.classList.add('show'); el.classList.add('error'); }
+    else { err.classList.remove('show'); el.classList.remove('error'); }
+  } else if (id === 'phone' || id === 'company') { /* optional fields */ }
+  else {
+    if (!el.value.trim()) { err.classList.add('show'); el.classList.add('error'); }
+    else { err.classList.remove('show'); el.classList.remove('error'); }
+  }
+}
 ['fullName', 'email', 'description', 'phone', 'company'].forEach(function(id) {
   var el = document.getElementById(id);
   el.addEventListener('input', function() {
     document.getElementById('err-' + id) && document.getElementById('err-' + id).classList.remove('show');
+    el.classList.remove('error');
     saveFormDraft();
   });
+  if (id !== 'phone' && id !== 'company') { el.addEventListener('blur', function() { validateField(id); }); }
 });
 
 function openTierDetails(tier, catName) {
@@ -1219,6 +1255,7 @@ if (savedStep !== null) {
   if (savedPath) { selectedPath = savedPath; if (savedStep <= 4) choosePath(savedPath); }
   var savedCurrency = (function() { try { return localStorage.getItem('esp_currency'); } catch(e) { return null; } })();
   if (savedCurrency && CURRENCIES[savedCurrency]) { setCurrency(savedCurrency); }
+  if (localStorage.getItem('esp_priority') === '1') priorityMode = true;
   if (typeof lucide !== 'undefined') lucide.createIcons();
   go(savedStep);
 }

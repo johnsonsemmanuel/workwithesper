@@ -105,8 +105,9 @@
     <h2>Admin</h2>
     <p>Enter the admin password to continue.</p>
     <input type="password" id="passwordInput" placeholder="password" onkeydown="if(event.key==='Enter')login()" autofocus />
-    <button class="btn" onclick="login()">Authenticate</button>
+      <button class="btn" onclick="login()">Authenticate</button>
     <div class="err" id="loginError">Invalid password</div>
+    <div class="err" id="sessionExpired" style="color:var(--amber);border-color:var(--amber);border:1px solid var(--amber);padding:6px 10px;margin-top:8px;display:none;font-size:11px;">Session expired. Please log in again.</div>
   </div>
 </div>
 
@@ -116,6 +117,8 @@
     <div class="s-item" data-tab="visitors" onclick="switchTab('visitors')"><i data-lucide="users" width="14" height="14" stroke-width="1.5"></i><span>Visitors</span></div>
     <div class="s-item" data-tab="requests" onclick="switchTab('requests')"><i data-lucide="file-text" width="14" height="14" stroke-width="1.5"></i><span>Requests</span></div>
     <div class="s-item" data-tab="health" onclick="switchTab('health')"><i data-lucide="activity" width="14" height="14" stroke-width="1.5"></i><span>Health</span></div>
+    <div style="flex:1"></div>
+    <div class="s-item" onclick="logout()" style="border-top:1px solid var(--border);"><i data-lucide="log-out" width="14" height="14" stroke-width="1.5"></i><span>Logout</span></div>
   </div>
   <div class="main" id="mainContent">
     <div class="stats-row" id="statsRow"></div>
@@ -129,15 +132,33 @@ function login() {
   var pwd = document.getElementById('passwordInput').value;
   fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pwd}) })
     .then(function(r) { return r.json().then(function(d) { if (r.ok) return d; throw new Error(d.message); }); })
-    .then(function(d) { TOKEN = d.token; document.getElementById('loginView').classList.add('hidden'); document.getElementById('appView').classList.remove('hidden'); loadData(); })
+    .then(function(d) { TOKEN = d.token; document.getElementById('loginView').classList.add('hidden'); document.getElementById('appView').classList.remove('hidden'); document.getElementById('sessionExpired').style.display='none'; loadData(); })
     .catch(function(e) { document.getElementById('loginError').style.display = 'block'; });
 }
 
 function api(path) {
-  return fetch(path, { headers: { 'x-admin-token': TOKEN } }).then(function(r) { if (!r.ok) { document.getElementById('appView').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden'); throw new Error('Session expired'); } return r.json(); });
+  return fetch(path, { headers: { 'x-admin-token': TOKEN } }).then(function(r) { if (!r.ok) { document.getElementById('appView').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden'); document.getElementById('sessionExpired').style.display='block'; throw new Error('Session expired'); } return r.json(); });
+}
+
+function logout() {
+  fetch('/api/admin/logout', { method:'POST', headers:{'x-admin-token':TOKEN} }).then(function() {
+    TOKEN = null; document.getElementById('appView').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden');
+  }).catch(function() { TOKEN = null; document.getElementById('appView').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden'); });
 }
 
 var currentTab = 'overview';
+function downloadCSV(type) {
+  fetch('/api/admin/export/' + type, { headers: { 'x-admin-token': TOKEN } })
+    .then(function(r) { if (!r.ok) throw new Error('Export failed'); return r.blob(); })
+    .then(function(blob) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = type + '-' + new Date().toISOString().slice(0,10) + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(a.href); }, 60000);
+    })
+    .catch(function(e) { console.error(e); });
+}
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.s-item').forEach(function(el) { el.classList.toggle('active', el.dataset.tab === tab); });
@@ -198,7 +219,7 @@ function renderOverview(d) {
 
 function renderVisitors(d) {
   document.getElementById('statsRow').innerHTML = '';
-  var html = '<div class="section-title">All Visitors <span class="count">(' + d.stats.totalVisits + ' total, ' + d.stats.uniqueVisitors + ' unique)</span></div>';
+  var html = '<div class="section-title" style="display:flex;align-items:center;justify-content:space-between;"><span>All Visitors <span class="count">(' + d.stats.totalVisits + ' total, ' + d.stats.uniqueVisitors + ' unique)</span></span><a href="javascript:void(0)" onclick="downloadCSV('visits')" style="font-size:11px;color:var(--orange);text-decoration:none;font-family:monospace;border:1px solid var(--border);padding:4px 10px;border-radius:4px;">Export CSV</a></div>';
 
   if (d.byCountry && d.byCountry.length) {
     var maxCount = d.byCountry[0][1];
@@ -224,7 +245,7 @@ function renderVisitors(d) {
 function renderRequests(d) {
   document.getElementById('statsRow').innerHTML = '';
   var reqs = d.recentRequests || [];
-  var html = '<div class="section-title">Service Requests <span class="count">(' + d.stats.totalRequests + ' total, ' + d.stats.requestsToday + ' today)</span></div>';
+  var html = '<div class="section-title" style="display:flex;align-items:center;justify-content:space-between;"><span>Service Requests <span class="count">(' + d.stats.totalRequests + ' total, ' + d.stats.requestsToday + ' today)</span></span><a href="javascript:void(0)" onclick="downloadCSV(\'requests\')" style="font-size:11px;color:var(--orange);text-decoration:none;font-family:monospace;border:1px solid var(--border);padding:4px 10px;border-radius:4px;">Export CSV</a></div>';
   if (reqs.length === 0) {
     html += '<div class="empty">No requests yet.</div>';
   } else {
@@ -264,16 +285,16 @@ function renderHealth() {
   html += '</div>';
 
   html += '<div class="section-title" style="margin-top:16px;">Configuration</div><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Status</th></tr></thead><tbody>';
-  var configs = [
-    ['ESPERWORKS_API_KEY', h.esperworks ? (h.esperworks.ok ? 'Configured' : 'Error') : 'Not set'],
-    ['SMTP', h.smtp ? (h.smtp.ok ? 'Configured' : 'Not set') : 'Not set'],
-    ['ADMIN_PASSWORD', 'Set'],
-    ['CORS Origins', 'Configured'],
-    ['Rate Limit', '100 req/15min'],
+  var configItems = [
+    ['ESPERWORKS_API_KEY', h.esperworks ? (h.esperworks.ok ? 'Configured & OK' : 'Error') : 'Not set'],
+    ['SMTP', h.smtp ? (h.smtp.ok ? 'Configured (' + (h.smtp.host || '') + ')' : 'Not set') : 'Not set'],
+    ['ADMIN_PASSWORD', h.config && h.config.adminPasswordSet ? 'Env var set' : 'Using default'],
+    ['CORS Origins', h.config ? h.config.corsOrigins.join(', ') : '-'],
+    ['Rate Limit', h.config ? h.config.rateLimit : '-'],
     ['Currencies', (h.rates ? h.rates.currencies : 0) + ' African currencies'],
     ['Memory', h.server ? Math.round((h.server.memory || 0) / 1048576) + ' MB RSS' : '-'],
   ];
-  configs.forEach(function(c) { html += '<tr><td class="ip">' + c[0] + '</td><td>' + c[1] + '</td></tr>'; });
+  configItems.forEach(function(c) { html += '<tr><td class="ip">' + c[0] + '</td><td>' + c[1] + '</td></tr>'; });
   html += '</tbody></table></div>';
 
   document.getElementById('tabContent').innerHTML = html;
