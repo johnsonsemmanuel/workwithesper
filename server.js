@@ -12,9 +12,11 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ESPERWORKS_API = 'https://api.tryesperworks.com/api';
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
+const UPLOAD_DIR = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, 'uploads');
 
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+if (!fs.existsSync(UPLOAD_DIR)) {
+  try { fs.mkdirSync(UPLOAD_DIR, { recursive: true }); } catch (e) { console.warn('Could not create uploads dir:', e.message); }
+}
 
 const upload = multer({
   dest: UPLOAD_DIR,
@@ -83,7 +85,7 @@ const ratesCache = { data: null, ts: 0 };
 const RATES_API = 'https://open.er-api.com/v6/latest/USD';
 const RATES_FALLBACK = 'https://api.exchangerate-api.com/v4/latest/USD';
 
-AFRICAN_CURRENCIES = {
+const AFRICAN_CURRENCIES = {
   USD: { code: 'USD', name: 'US Dollar', symbol: '$' },
   GHS: { code: 'GHS', name: 'Ghanaian Cedi', symbol: 'GH¢' },
   NGN: { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
@@ -168,11 +170,17 @@ function convertPrice(usd, currency, rates) {
 }
 
 function buildQuoteEmail(data) {
-  const { fullName, email, phone, company, service, category, complexity, description, price, estimatedDays, currency: cur } = data;
+  const { fullName, email, phone, company, service, category, complexity, description, price, estimatedDays, currency: cur, meetingDate, meetingTime } = data;
   const curInfo = AFRICAN_CURRENCIES[cur] || AFRICAN_CURRENCIES.USD;
   const symbol = curInfo.symbol;
   const converted = convertPrice(Number(price), cur, ratesCache.data?.rates || {});
   const formattedPrice = converted >= 1000 ? converted.toLocaleString() : String(converted);
+  const meetingBlock = meetingDate && meetingTime ? `
+        <div style="text-align:center;margin-top:24px;padding:20px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;">
+          <p style="color:#166534;font-weight:600;margin:0 0 4px;">> Google Meet Discovery Call</p>
+          <p style="color:#15803d;font-size:15px;margin:0;font-weight:500;">${meetingDate} at ${meetingTime} GMT</p>
+          <p style="color:#475569;font-size:13px;margin:6px 0 0;">A Google Meet link will be sent to this email before the call.</p>
+        </div>` : '';
 
   return {
     subject: `New Quote Request: ${service} - Esper Partners`,
@@ -208,6 +216,8 @@ function buildQuoteEmail(data) {
             </tr>
           </table>
         </div>
+
+        ${meetingBlock}
 
         <div style="text-align:center;margin-top:24px;padding:20px;background:#eff6ff;border-radius:12px;">
           <p style="color:#1e3a5f;font-weight:600;margin:0;">What happens next?</p>
@@ -311,7 +321,7 @@ async function createEsperWorksInvoice(data) {
       rate: data.price,
     }],
     currency: data.currency || 'USD',
-    notes: `Category: ${data.category} | Est. Days: ${data.estimatedDays} | ${(data.description || '').slice(0, 500)}`,
+    notes: `Category: ${data.category} | Est. Days: ${data.estimatedDays}${data.meetingDate && data.meetingTime ? ` | Discovery Call: ${data.meetingDate} @ ${data.meetingTime} GMT` : ''} | ${(data.description || '').slice(0, 500)}`,
     status: 'draft',
   };
 
@@ -388,6 +398,8 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
       price: Number(data.price) || 0,
       estimatedDays: Number(data.estimatedDays) || 1,
       currency: sanitize(data.currency) || 'USD',
+      meetingDate: sanitize(data.meetingDate || ''),
+      meetingTime: sanitize(data.meetingTime || ''),
     };
 
     if (!sanitized.fullName || !sanitized.email || !sanitized.description) {
@@ -442,13 +454,17 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  logger.info('Server started', { port: PORT, node: process.version });
-  const hasEsper = !!process.env.ESPERWORKS_API_KEY;
-  const hasEmail = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
-  if (!hasEsper && !hasEmail) {
-    logger.warn('No API keys configured - running in preview mode');
-  } else {
-    logger.info('Services', { esperworks: hasEsper, email: hasEmail });
-  }
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    logger.info('Server started', { port: PORT, node: process.version });
+    const hasEsper = !!process.env.ESPERWORKS_API_KEY;
+    const hasEmail = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+    if (!hasEsper && !hasEmail) {
+      logger.warn('No API keys configured - running in preview mode');
+    } else {
+      logger.info('Services', { esperworks: hasEsper, email: hasEmail });
+    }
+  });
+}
+
+module.exports = app;
