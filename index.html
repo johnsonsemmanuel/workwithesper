@@ -14,7 +14,6 @@
   <meta name="twitter:card" content="summary" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://assets.calendly.com/assets/external/widget.js" defer></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -650,6 +649,13 @@ function showCalendly() {
     container.innerHTML = '<div class="calendly-inline-widget" data-url="' + CALENDLY_URL + '?hide_gdpr_banner=1" style="min-width:320px;height:580px;"></div>';
     if (window.Calendly && Calendly.initInlineWidgets) {
       Calendly.initInlineWidgets();
+    } else if (!window._calendlyLoading) {
+      window._calendlyLoading = true;
+      var s = document.createElement('script');
+      s.src = 'https://assets.calendly.com/assets/external/widget.js';
+      s.async = true;
+      s.onload = function() { if (window.Calendly) Calendly.initInlineWidgets(); };
+      document.head.appendChild(s);
     }
   }
 
