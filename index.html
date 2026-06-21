@@ -291,6 +291,36 @@
     }
     .date-input:focus { border-color: var(--green); }
 
+    /* choice path cards */
+    .path-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 24px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      opacity: 0; transform: translateY(16px);
+    }
+    .path-card.show { opacity: 1; transform: translateY(0); transition: opacity 0.35s cubic-bezier(0.22,1,0.36,1), transform 0.35s cubic-bezier(0.22,1,0.36,1), border-color 0.2s, box-shadow 0.2s; }
+    .path-card:hover { border-color: var(--green); transform: translateY(-3px); }
+    .path-card.show:hover { transform: translateY(-3px); }
+    .path-card.selected { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 24px rgba(63,185,80,0.08); }
+    .path-card .path-icon { margin-bottom: 10px; }
+    .path-card .path-icon i { width: 32px; height: 32px; stroke-width: 1.5; }
+    .path-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .path-card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+    .path-tag {
+      display: inline-block; margin-top: 10px;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      padding: 2px 8px;
+    }
+    .path-tag.featured { color: var(--cyan); border: 1px solid var(--cyan); }
+    .path-notice {
+      margin-top: 10px; padding: 6px 10px;
+      border: 1px solid var(--amber); color: var(--amber);
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    }
+    #schedulerSection { margin-top: 24px; }
+
     /* calendly */
     #calendlyContainer .calendly-inline-widget { min-width:320px; height:580px; }
     #calendlyContainer .calendly-spinner { display:none; }
@@ -357,39 +387,55 @@
   </div>
 </div>
 
-<!-- STEP 4: BOOK DISCOVERY CALL -->
+<!-- STEP 4: CHOOSE PATH -->
 <div class="view" id="step4">
   <div class="container">
-    <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ <span style="color:var(--cyan)">book a discovery call</span></div>
-    <h1 class="heading" id="step4Heading">Let's talk it through.</h1>
-    <p class="sub" id="step4Sub">Pick a time for a free 30-minute discovery call. It syncs directly to our Google Calendar.</p>
-    <div class="form-card" id="schedulerCard">
-      <div id="calendlyContainer" style="display:none;min-height:500px;"></div>
-      <div id="manualScheduler" style="display:none;">
-        <div class="form-group">
-          <label><span class="required">*</span> preferred date</label>
-          <input type="date" class="date-input" id="meetingDate" />
-          <div class="field-error" id="err-meetingDate">Select a date</div>
-        </div>
-        <div class="form-group">
-          <label><span class="required">*</span> preferred time (GMT)</label>
-          <div class="slot-grid" id="timeSlots"></div>
-          <div class="field-error" id="err-meetingTime">Select a time slot</div>
-        </div>
+    <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ <span style="color:var(--cyan)">choose your path</span></div>
+    <h1 class="heading">How would you like to proceed?</h1>
+    <p class="sub">Book a free discovery call to discuss your project, or skip to invoicing to get started right away.</p>
+    <div class="card-grid card-grid-2" id="pathGrid">
+      <div class="path-card" id="pathCall" onclick="choosePath('call')">
+        <div class="path-icon"><i data-lucide="calendar" width="32" height="32" stroke-width="1.5"></i></div>
+        <h3>Book a Discovery Call</h3>
+        <p>Schedule a free 30-minute call to discuss your project, get answers, and define scope before committing.</p>
+        <div class="path-tag featured"><i data-lucide="award" width="12" height="12" stroke-width="1.5" style="vertical-align:middle;margin-right:2px"></i> recommended</div>
       </div>
-      <div id="calendlyConfirm" style="display:none;text-align:center;padding:20px;">
-        <i data-lucide="check-circle" width="40" height="40" stroke-width="1.5" style="color:var(--green)"></i>
-        <p style="margin-top:10px;font-weight:600;font-size:15px;">Discovery call booked!</p>
-        <p style="color:var(--text-dim);font-size:13px;margin-top:4px;" id="calendlyEventInfo"></p>
+      <div class="path-card" id="pathInvoice" onclick="choosePath('invoice')">
+        <div class="path-icon"><i data-lucide="file-text" width="32" height="32" stroke-width="1.5"></i></div>
+        <h3>Get an Invoice</h3>
+        <p>Skip the call and receive an invoice to commence the project. Provide your details and we will send your invoice right away.</p>
+        <div class="path-notice">Work begins after payment is received.</div>
       </div>
-      <div id="step4Info" style="margin-top:12px;padding:8px 12px;border:1px solid var(--cyan);color:var(--cyan);font-size:12px;font-family:'JetBrains Mono',monospace;">
-        <i data-lucide="video" width="14" height="14" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong> link will be sent to your email after booking.
+    </div>
+    <div id="schedulerSection" style="display:none;">
+      <div class="form-card" id="schedulerCard">
+        <div id="calendlyContainer" style="display:none;min-height:500px;"></div>
+        <div id="manualScheduler" style="display:none;">
+          <div class="form-group">
+            <label><span class="required">*</span> preferred date</label>
+            <input type="date" class="date-input" id="meetingDate" />
+            <div class="field-error" id="err-meetingDate">Select a date</div>
+          </div>
+          <div class="form-group">
+            <label><span class="required">*</span> preferred time (GMT)</label>
+            <div class="slot-grid" id="timeSlots"></div>
+            <div class="field-error" id="err-meetingTime">Select a time slot</div>
+          </div>
+        </div>
+        <div id="calendlyConfirm" style="display:none;text-align:center;padding:20px;">
+          <i data-lucide="check-circle" width="40" height="40" stroke-width="1.5" style="color:var(--green)"></i>
+          <p style="margin-top:10px;font-weight:600;font-size:15px;">Discovery call booked!</p>
+          <p style="color:var(--text-dim);font-size:13px;margin-top:4px;" id="calendlyEventInfo"></p>
+        </div>
+        <div id="step4Info" style="margin-top:12px;padding:8px 12px;border:1px solid var(--cyan);color:var(--cyan);font-size:12px;font-family:'JetBrains Mono',monospace;">
+          <i data-lucide="video" width="14" height="14" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong> link will be sent to your email after booking.
+        </div>
       </div>
     </div>
     <div class="actions">
       <button class="btn" onclick="go(3)"><i data-lucide="arrow-left" width="14" height="14" stroke-width="2"></i> back</button>
       <span class="spacer"></span>
-      <button class="btn btn-primary" id="meetNextBtn" disabled onclick="go(5)">Next <i data-lucide="arrow-right" width="14" height="14" stroke-width="2"></i></button>
+      <button class="btn btn-primary" id="step4NextBtn" disabled onclick="go(5)">Next <i data-lucide="arrow-right" width="14" height="14" stroke-width="2"></i></button>
     </div>
   </div>
 </div>
@@ -398,8 +444,8 @@
 <div class="view" id="step5">
   <div class="container-wide">
     <div class="prompt"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> espr@partners:~$ <span style="color:var(--cyan)">your quote</span></div>
-    <h1 class="heading">Here's your estimate.</h1>
-    <p class="sub">See the breakdown below. Switch currency to see pricing in your local market.</p>
+    <h1 class="heading" id="step5Heading">Here's your estimate.</h1>
+    <p class="sub" id="step5Sub">See the breakdown below. Switch currency to see pricing in your local market.</p>
 
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);">
       <i data-lucide="dollar-sign" width="14" height="14" stroke-width="2" style="color:var(--green)"></i>
@@ -414,6 +460,7 @@
       <div class="quote-summary" id="quoteSummary"></div>
       <div class="form-card">
         <div class="prompt" style="margin-bottom:12px"><span class="dollar"><i data-lucide="chevron-right" width="12" height="12" stroke-width="2.5"></i></span> your details</div>
+        <div id="paymentNotice" style="display:none;margin-bottom:14px;padding:8px 12px;border:1px solid var(--amber);color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:11px;"><i data-lucide="shield" width="12" height="12" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> Work begins <strong>after payment</strong> is received. Your invoice will be sent via email.</div>
         <form id="detailsForm" novalidate>
           <div class="form-row">
             <div class="form-group">
@@ -450,7 +497,7 @@
             </div>
           </div>
           <button type="submit" class="submit-btn" id="submitBtn">
-            <span class="btn-text"><i data-lucide="send" width="14" height="14" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> Send &amp; Get Proposal</span>
+            <span class="btn-text"><i data-lucide="send" width="14" height="14" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> Send &amp; Get <span id="submitBtnLabel">Proposal</span></span>
             <span class="spinner"></span>
           </button>
         </form>
@@ -469,9 +516,7 @@
     <h1 class="heading" style="font-size:22px;">Your request is in.</h1>
     <p class="sub" style="max-width:400px;margin:0 auto 20px;" id="confirmMsg">We'll review and send a formal proposal within 48 hours.</p>
     <div style="background:var(--bg-card);border:1px solid var(--border);padding:16px;margin-bottom:20px;text-align:left;max-width:400px;margin:0 auto 20px;" id="confirmSummary"></div>
-    <div style="margin-bottom:20px;padding:12px;border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;max-width:400px;margin:0 auto 20px;" id="confirmMeeting">
-      <i data-lucide="video" width="16" height="16" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong><br/>Your discovery call link will be sent to your email.
-    </div>
+    <div style="margin-bottom:20px;max-width:400px;margin:0 auto 20px;" id="confirmMeeting"></div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <a href="https://espergloballtd.com" class="btn"><i data-lucide="external-link" width="14" height="14" stroke-width="2"></i> Visit Website</a>
       <a href="https://wa.me/233208713610" class="btn btn-outline"><i data-lucide="message-circle" width="14" height="14" stroke-width="2"></i> Chat on WhatsApp</a>
@@ -511,7 +556,7 @@ const TIME_SLOTS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00
 const CURRENCIES = { USD: ['$', 'US Dollar'], GHS: ['GH¢', 'Ghanaian Cedi'], NGN: ['₦', 'Nigerian Naira'], KES: ['KSh', 'Kenyan Shilling'], ZAR: ['R', 'South African Rand'], UGX: ['USh', 'Ugandan Shilling'], TZS: ['TSh', 'Tanzanian Shilling'], RWF: ['FRw', 'Rwandan Franc'], XAF: ['FCFA', 'Central African CFA'], XOF: ['CFA', 'West African CFA'], EGP: ['E£', 'Egyptian Pound'], MAD: ['DH', 'Moroccan Dirham'], ZMW: ['ZK', 'Zambian Kwacha'], MZN: ['MT', 'Mozambican Metical'], ETB: ['Br', 'Ethiopian Birr'], BWP: ['P', 'Botswana Pula'] };
 
 const CALENDLY_URL = 'https://calendly.com/espergloballtd/30min'; // set to '' to use manual date/time picker
-let curStep = 1, selectedCat = null, selectedTier = null, selectedTime = null, selectedDate = null, rates = { USD: 1 };
+let selectedPath = null, curStep = 1, selectedCat = null, selectedTier = null, selectedTime = null, selectedDate = null, rates = { USD: 1 };
 
 function go(n) {
   const forward = n > curStep;
@@ -542,7 +587,7 @@ function go(n) {
   window.scrollTo(0, 0);
   if (n === 2) animateCards('#categoryGrid .opt-card', 60);
   if (n === 3) { renderTiers(); animateCards('#tierGrid .tier-card', 80); }
-  if (n === 4) { initScheduler(); animateCards('.slot-btn', 30); }
+  if (n === 4) { animateCards('.path-card', 80); if (selectedPath === 'call' && document.getElementById('schedulerSection').style.display !== 'block') { choosePath('call'); } }
   if (n === 5) renderQuote();
   if (n === 1) typePrompt('step1 .prompt', './discover');
   if (n === 2) typePrompt('step2 .prompt', 'what brings you here?');
@@ -558,6 +603,7 @@ function saveState() {
   try { if (selectedTier) localStorage.setItem('esp_tier', JSON.stringify(selectedTier)); } catch(e) {}
   try { if (selectedDate) localStorage.setItem('esp_date', selectedDate); } catch(e) {}
   try { if (selectedTime) localStorage.setItem('esp_time', selectedTime); } catch(e) {}
+  try { if (selectedPath) localStorage.setItem('esp_path', selectedPath); } catch(e) {}
 }
 
 function animateCards(sel, delay) {
@@ -628,13 +674,31 @@ function renderTiers() {
   document.getElementById('scopeSub').textContent = selectedCat ? 'Select a package tier for ' + selectedCat + '.' : 'Select a package tier based on your needs and budget.';
 }
 
+// step 4: choose path + optional scheduler
+function choosePath(path) {
+  selectedPath = path;
+  document.querySelectorAll('.path-card').forEach(function(el) { el.classList.remove('selected'); });
+  document.getElementById('path' + path.charAt(0).toUpperCase() + path.slice(1)).classList.add('selected');
+  var scheduler = document.getElementById('schedulerSection');
+  var nextBtn = document.getElementById('step4NextBtn');
+  if (path === 'call') {
+    scheduler.style.display = 'block';
+    nextBtn.disabled = true;
+    if (CALENDLY_URL) {
+      showCalendly();
+    } else {
+      showManualScheduler();
+    }
+  } else {
+    scheduler.style.display = 'none';
+    nextBtn.disabled = false;
+  }
+  saveState();
+}
+
 // step 4: meeting scheduler (Calendly or manual fallback)
 function initScheduler() {
-  if (CALENDLY_URL) {
-    showCalendly();
-  } else {
-    showManualScheduler();
-  }
+  if (selectedPath) { choosePath(selectedPath); }
 }
 
 function showCalendly() {
@@ -684,7 +748,7 @@ function showCalendly() {
       document.getElementById('calendlyContainer').style.display = 'none';
       document.getElementById('calendlyConfirm').style.display = 'block';
       document.getElementById('calendlyEventInfo').textContent = selectedDate + ' at ' + selectedTime;
-      document.getElementById('meetNextBtn').disabled = false;
+      document.getElementById('step4NextBtn').disabled = false;
       if (typeof lucide !== 'undefined') lucide.createIcons();
       saveState();
     }
@@ -732,7 +796,7 @@ function checkMeetingValid() {
   const date = document.getElementById('meetingDate').value;
   const ok = date && selectedTime;
   selectedDate = date;
-  document.getElementById('meetNextBtn').disabled = !ok;
+  document.getElementById('step4NextBtn').disabled = !ok;
   if (ok) {
     document.getElementById('err-meetingDate').classList.remove('show');
     document.getElementById('err-meetingTime').classList.remove('show');
@@ -743,6 +807,12 @@ function checkMeetingValid() {
 // step 5: quote + form
 function renderQuote() {
   if (!selectedCat || !selectedTier) return;
+  var isInvoice = selectedPath === 'invoice';
+  document.getElementById('step5Heading').textContent = isInvoice ? "Here's your invoice." : "Here's your estimate.";
+  document.getElementById('step5Sub').textContent = isInvoice ? "Fill in your details below and we'll send the invoice to your email." : "See the breakdown below. Switch currency to see pricing in your local market.";
+  document.getElementById('submitBtnLabel').textContent = isInvoice ? 'Invoice' : 'Proposal';
+  document.getElementById('paymentNotice').style.display = isInvoice ? 'block' : 'none';
+  if (isInvoice && typeof lucide !== 'undefined') lucide.createIcons();
   const t = selectedTier, p = t.p, mp = t.x || t.p, s = sy();
   const el = document.getElementById('quoteSummary');
   el.innerHTML = '<div class="line"><span class="lbl">service</span><span class="val">' + selectedCat + '</span></div><div class="line"><span class="lbl">package</span><span class="val">' + t.n + '</span></div><div class="line"><span class="lbl">delivery</span><span class="val">' + t.dy + ' business days</span></div><div style="margin-top:8px;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);font-size:12px;font-family:\'JetBrains Mono\',monospace;color:var(--text-dim);"><div style="display:flex;justify-content:space-between;"><span>USD</span><span>$' + p.toLocaleString() + (mp > p ? ' - $' + mp.toLocaleString() : '') + '</span></div><div style="display:flex;justify-content:space-between;"><span>' + curCode() + '</span><span>' + s + fp(p) + (mp > p ? ' - ' + s + fp(mp) : '') + '</span></div></div><div class="total"><span>' + (mp > p ? 'from' : 'fixed') + '</span><span>' + s + fp(p) + '</span></div><div style="margin-top:8px;padding:6px 10px;border:1px solid var(--cyan);color:var(--cyan);font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i data-lucide="shield" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> <strong>50% deposit</strong> required to start</div>';
@@ -784,27 +854,37 @@ document.getElementById('detailsForm').addEventListener('submit', async function
   fd.append('service', selectedTier.n);
   fd.append('category', selectedCat);
   fd.append('complexity', 'Fixed');
-  fd.append('description', selectedTier.d + '\n\n' + de + '\n\nDiscovery Call: ' + selectedDate + ' at ' + selectedTime);
+  var meetingInfo = (selectedDate && selectedTime) ? '\n\nDiscovery Call: ' + selectedDate + ' at ' + selectedTime : '\n\nNo discovery call - direct invoice request';
+  fd.append('description', selectedTier.d + '\n\n' + de + meetingInfo);
   fd.append('price', selectedTier.p);
   fd.append('estimatedDays', selectedTier.dy);
   fd.append('currency', curCode());
-  fd.append('meetingDate', selectedDate);
-  fd.append('meetingTime', selectedTime);
-  const af = document.getElementById('attachment');
+  fd.append('meetingDate', selectedDate || '');
+  fd.append('meetingTime', selectedTime || '');
+  var af = document.getElementById('attachment');
   if (af.files[0]) fd.append('attachment', af.files[0]);
   try {
-    const r = await fetch('/api/send-quote', { method: 'POST', body: fd });
-    const d = await r.json();
+    var r = await fetch('/api/send-quote', { method: 'POST', body: fd });
+    var d = await r.json();
     if (d.success) {
-      document.getElementById('confirmMsg').textContent = d.message || 'We will review and send a formal proposal within 48 hours.';
+      var isInvoice = selectedPath === 'invoice';
+      document.getElementById('confirmMsg').textContent = isInvoice ? 'Your invoice has been sent. Work begins after payment is received.' : (d.message || 'We will review and send a formal proposal within 48 hours.');
+      var meetingLine = (selectedDate && selectedTime) ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">discovery call</span><span>' + selectedDate + ' at ' + selectedTime + '</span></div>' : '';
+      var statusLine = isInvoice ? '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">status</span><span style="color:var(--green)">invoice sent</span></div>' : '';
       document.getElementById('confirmSummary').innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + selectedTier.dy + ' business days</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">discovery call</span><span>' + selectedDate + ' at ' + selectedTime + '</span></div>';
-      document.getElementById('confirmMeeting').innerHTML = '<i data-lucide="video" width="16" height="16" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong><br/>Your discovery call link will be sent to <strong>' + em + '</strong> shortly.';
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">name</span><span>' + fn + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">service</span><span>' + selectedCat + ' - ' + selectedTier.n + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--text-dim)">delivery</span><span>' + selectedTier.dy + ' business days</span></div>' + meetingLine + statusLine;
+      if (d.paymentUrl) {
+        document.getElementById('confirmMeeting').innerHTML = '<div style="padding:12px;border:1px solid var(--green);color:var(--green);font-family:\'JetBrains Mono\',monospace;font-size:12px;"><i data-lucide="external-link" width="14" height="14" stroke-width="1.5" style="vertical-align:middle;margin-right:4px"></i> <a href="' + d.paymentUrl + '" target="_blank" style="color:var(--green);text-decoration:underline;">Pay Invoice Online</a> &mdash; cards, mobile money &amp; bank transfer</div>';
+      } else if (selectedDate && selectedTime) {
+        document.getElementById('confirmMeeting').innerHTML = '<i data-lucide="video" width="16" height="16" stroke-width="2" style="vertical-align:middle;margin-right:4px"></i> <strong>Google Meet</strong><br/>Your discovery call link will be sent to <strong>' + em + '</strong> shortly.';
+      } else {
+        document.getElementById('confirmMeeting').style.display = 'none';
+      }
       if (typeof lucide !== 'undefined') lucide.createIcons();
       go(6);
-      try { localStorage.removeItem('espr_draft'); } catch {}
+      try { localStorage.removeItem('espr_draft'); } catch(e) {}
     } else toast(d.message || 'Failed.', 'error');
-  } catch { toast('Network error.', 'error'); }
+  } catch(e) { toast('Network error.', 'error'); }
   finally { btn.classList.remove('loading'); btn.disabled = false; }
 });
 
@@ -837,11 +917,12 @@ if (savedStep !== null) {
   var savedTier = (function() { try { return JSON.parse(localStorage.getItem('esp_tier')); } catch(e) { return null; } })();
   var savedDate = (function() { try { return localStorage.getItem('esp_date'); } catch(e) { return null; } })();
   var savedTime = (function() { try { return localStorage.getItem('esp_time'); } catch(e) { return null; } })();
+  var savedPath = (function() { try { return localStorage.getItem('esp_path'); } catch(e) { return null; } })();
   if (savedCat) { selectedCat = savedCat; document.getElementById('catNextBtn').disabled = false; renderCategories(); }
   if (savedTier) { selectedTier = savedTier; document.getElementById('tierNextBtn').disabled = false; if (savedCat) renderTiers(); }
   if (savedDate) selectedDate = savedDate;
   if (savedTime) selectedTime = savedTime;
-  if (savedDate && savedTime) document.getElementById('meetNextBtn').disabled = false;
+  if (savedPath) { selectedPath = savedPath; if (savedStep <= 4) choosePath(savedPath); }
   if (typeof lucide !== 'undefined') lucide.createIcons();
   go(savedStep);
 }
