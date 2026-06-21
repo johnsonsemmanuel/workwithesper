@@ -67,6 +67,7 @@
     .view {
       display: none;
       height: 100vh;
+      height: 100dvh;
       padding: 56px 0 0;
       overflow-y: auto;
       opacity: 0;
@@ -250,11 +251,32 @@
     .toast-success { background: #0d1117; border-color: var(--orange); color: var(--orange); }
     .toast-error { background: #0d1117; border-color: var(--red); color: var(--red); }
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
       .card-grid-2, .card-grid-3 { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
-      .container, .container-wide { padding: 24px 16px; }
-      .heading { font-size: 22px; }
+      .container, .container-wide { padding: 20px 12px; }
+      .heading { font-size: 20px; }
+      .term-dots { display: none; }
+      .term-title .loc-info { display: none; }
+      .term-title { font-size: 10px; }
+      .step-counter { font-size: 10px; }
+      .btn { padding: 10px 16px; font-size: 12px; min-height: 40px; }
+      .opt-card { padding: 14px; }
+      .tier-card { padding: 16px; }
+      .path-card { padding: 18px; }
+      .form-card { padding: 16px; }
+      .slot-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+      .slot-btn { padding: 6px; font-size: 11px; }
+      #calendlyContainer .calendly-inline-widget { height: 480px; min-width: auto; }
+      .sub { font-size: 13px; margin-bottom: 20px; }
+      .priority-toggle { font-size: 11px; padding: 6px 10px; }
+      .timeline .tl-text { font-size: 11px; }
+      .pdf-actions { flex-direction: column; }
+      .pdf-actions .btn { font-size: 11px; padding: 8px 12px; }
+      .quote-summary { padding: 12px; }
+      .quote-summary .total { font-size: 17px; }
+      .tier-price { font-size: 18px; }
+      .foot-note { font-size: 9px; }
     }
 
     .progress-bar {
@@ -404,7 +426,7 @@
     <div class="term-dot y"></div>
     <div class="term-dot g"></div>
   </div>
-  <div class="term-title"><span style="color:var(--orange);font-weight:700;">Esper</span><span style="color:var(--text-dim);">Partners</span> <span style="color:var(--text-dim);font-weight:400;margin-left:8px;">&middot;</span> <span style="color:var(--text-dim);font-weight:400;">~$ discover</span> <span style="color:var(--text-dim);font-weight:400;margin-left:8px;">Esper Partners LLC &middot; Accra, Ghana</span></div>
+  <div class="term-title"><span style="color:var(--orange);font-weight:700;">Esper</span><span style="color:var(--text-dim);">Partners</span> <span style="color:var(--text-dim);font-weight:400;margin-left:6px;">~$ discover</span> <span class="loc-info" style="color:var(--text-dim);font-weight:400;margin-left:6px;">&middot; Accra, Ghana</span></div>
   <div class="step-counter">step <span class="active-step" id="stepNum">1</span>/<span id="totalSteps">6</span></div>
 </div>
 
@@ -419,8 +441,8 @@
     <div><button class="btn btn-primary" onclick="go(2)"><i data-lucide="rocket" width="16" height="16" stroke-width="1.5"></i> Start Discovery</button></div>
     <div style="margin-top:40px;display:flex;gap:24px;flex-wrap:wrap;">
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--orange)">01</span> <i data-lucide="search" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> tell us your need</div>
-      <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">02</span> <i data-lucide="package" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> choose your package</div>
-      <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">03</span> <i data-lucide="calendar" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> book a call</div>
+      <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">02</span> <i data-lucide="package" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> pick your package</div>
+      <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">03</span> <i data-lucide="map" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> choose your path</div>
       <div style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;"><span style="color:var(--text-dim)">04</span> <i data-lucide="file-text" width="12" height="12" stroke-width="2" style="vertical-align:middle;margin-right:2px"></i> get your quote</div>
     </div>
   </div>
