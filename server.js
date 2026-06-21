@@ -410,8 +410,19 @@ app.post('/api/send-quote', upload.single('attachment'), async (req, res) => {
       try {
         const invoice = await createEsperWorksInvoice(sanitized);
         const inv = invoice?.invoice || invoice;
-        sanitized.invoiceUrl = inv?.payment_url || null;
+        sanitized.invoiceUrl = inv?.payment_url || (inv?.signing_token ? 'https://tryesperworks.com/invoices/pay/' + inv.signing_token : null);
         sanitized.invoiceNumber = inv?.invoice_number || inv?.id || null;
+        if (inv?.id) {
+          try {
+            await fetch(ESPERWORKS_API + '/invoices/' + inv.id + '/send', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + process.env.ESPERWORKS_API_KEY, 'X-API-Key': process.env.ESPERWORKS_API_KEY, 'Content-Type': 'application/json' },
+            });
+            logger.info('Invoice sent to client', { invoice_id: inv.id });
+          } catch (e2) {
+            logger.warn('Invoice send failed', { error: e2.message, invoice_id: inv.id });
+          }
+        }
       } catch (e) {
         errors.push('Invoice: ' + e.message);
         logger.error('Invoice creation failed', { error: e.message, email: sanitized.email });
