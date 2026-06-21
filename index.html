@@ -562,7 +562,7 @@ function typePrompt(sel, text) {
   const el = document.querySelector(sel);
   if (!el) return;
   const container = el;
-  const prefix = container.innerHTML.match(/^.*?(?<span|<)/)?.[0] || '';
+  const prefix = container.innerHTML.match(/^.*?(?=<|<span)/)?.[0] || '';
   const suffix = text;
   clearTimeout(_typingTmo);
   let i = 0;
